@@ -1,0 +1,25 @@
+## Interface: 50400
+## Title: MrFish
+## Notes: Quick line cast and equipment switch
+## Author: Alar of Daggerspine
+## Version: @project-version@ r@project-revision@
+## X-Version: 1.3.2
+## eMail: alar@aspide.it
+## RequiredDeps:
+## OptionalDeps: Ace3,AlarArtRemover,LibDebug
+## X-Embeds:
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariables: dbMRD
+## SavedVariablesPerCharacter: localdbMRD
+## X-ID: MRF
+## X-Database: db;RF
+## X-Revision: $Revision: 64 $
+## X-Category: Bags and Inventory
+## X-License: GPL v3
+## X-eMail: alar@aspide.it
+## X-Date: @project-date-iso@
+embeds.xml
+localization.lua
+MrFish.lua
+RelNotes.lua
