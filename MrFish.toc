@@ -10,10 +10,10 @@
 ## X-Embeds:
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
-## SavedVariables: dbMRD
-## SavedVariablesPerCharacter: localdbMRD
+## SavedVariables: dbMRF
+## SavedVariablesPerCharacter: localdbMRF
 ## X-ID: MRF
-## X-Database: db;RF
+## X-Database: dbMRF
 ## X-Revision: $Revision: 64 $
 ## X-Category: Bags and Inventory
 ## X-License: GPL v3
