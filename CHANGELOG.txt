@@ -1,14 +1,13 @@
 =Mr Fish=
-Mr Fish add two chat command:
-
 ==/fish==
 Switch your weapons with a fishing pole and displays a detached button to cast your line.
 You then click to cast (you can keep clicking untili your line doesnt land in a fishing pole).
 When you take your fish, MrFish display again the button at your mouse, ready to be recasted without hand motion. It even accepts right click to avoid finger change on mouse
+If you close the minicast button, Mr Fish will reequips your weapons.
+You are not required to use the command, because Mr Fish will notice if you start fishing or just equip a fishing pole and reacts appropriately
 ==/nofish==
 Removes the fishing button and reequips your weapons
-
 == Combat Safety ==
-MrFish will reequip your weapons if you get attacked
+MrFish will reequip your weapons if you get attacked (basically, executes a /nofish command)
 =Release 1.0.0=
 First public version
