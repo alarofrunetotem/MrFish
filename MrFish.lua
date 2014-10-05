@@ -9,8 +9,6 @@ X:loadingList(__FILE__,me)
 X:GetPrintFunctions(me,ns)
 local print=ns.print or print
 local debug=ns.debug or print
-local dump=ns.dump or print
-local sdebug=ns.sdebug or print
 -----------------------------------------------------------------
 local addon=X:CreateAddon(me,true) --#MrFish
 local FishingId=131474
@@ -20,17 +18,29 @@ local FishingPole
 local FishingPoleId=6256
 local FishingPolesCategory
 local IsFishing
+local CanFish
+local NoPoleWarn=true
 local weapons={
-[INVSLOT_MAINHAND]=nil,
-[INVSLOT_OFFHAND]=nil,
+[INVSLOT_MAINHAND]={},
+[INVSLOT_OFFHAND]={},
 }
-function addon:prova(...)
-	local a=''
-	if (InCombatLockdown()) then a ="COMBAT" end
-	print(a,...)
+function addon:SKILL_LINES_CHANGED(...)
+	self:Init()
+end
+function addon:PLAYER_REGEN_ENABLED()
+	if (not IsFishing) then
+		self.FishFrame:Hide()
+		self.StopFrame:Hide()
+	end
 end
 function addon:PLAYER_REGEN_DISABLED()
-	self:NoFish()
+	local channeling=UnitChannelInfo("player")
+	if (true or channeling == Fishing) then
+		if (self:HasEquippedFishingPole()) then
+			UIErrorsFrame:AddMessage(L["*** You dont have an weapon!!!! ***"], 1,0,0, 1.0, 40)
+			self:StopFishFrame()
+		end
+	end
 end
 function addon:COMBAT_LOG_EVENT_UNFILTERED(_,timestamp,event,hidecaster,sguid,sname,sflags,sraidflags,dguid,dname,dflags,dRaidflags,spellid,spellname,stack,kind,...)
 	if (bit.band(COMBATLOG_OBJECT_AFFILIATION_MINE,dflags)==1) then
@@ -39,9 +49,10 @@ function addon:COMBAT_LOG_EVENT_UNFILTERED(_,timestamp,event,hidecaster,sguid,sn
 			if (type(spellname)=="string" and spellname:find(Fishing)) then
 				if (kind=="BUFF") then
 					if (event == "SPELL_AURA_REMOVED") then
-						self:Fish(true)
+						self:StartFishFrame(true)
+						self:StopFishFrame(false)
 					elseif (event == "SPELL_AURA_APPLIED") then
-						if (not IsFishing) then self:Fish() end
+						self:StopFishFrame(true)
 					end
 				end
 			end
@@ -63,40 +74,69 @@ function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
 		end
 	end
 end
+function addon:HasEquippedFishingPole()
+	local ID=GetInventoryItemID("player",INVSLOT_MAINHAND)
+	if (ID) then
+			if (select(7,GetItemInfo(ID))==FishingPolesCategory) then
+				return ID
+			else
+				return false
+			end
+	else
+			return 0
+	end
+end
 function addon:GetFishingPole()
 	-- Discover localized category name
+	local maxlevel=0
+	local maxname
 	print(format(L["Scanning your bags for %s"],FishingPolesCategory))
 	for bag=BACKPACK_CONTAINER,NUM_BAG_SLOTS,1 do
 		for slot=1,GetContainerNumSlots(bag),1 do
 			local ID=GetContainerItemID(bag,slot)
 			if (ID) then
-				local name,itemlink,_,_,_,_,cat=GetItemInfo(ID)
+				local name,itemlink,_,level,_,_,cat=GetItemInfo(ID)
 				if (cat==FishingPolesCategory) then
-					return name
+					if (level>maxlevel) then
+						maxname=name
+						maxlevel=level
+					end
 				end
 			end
 		end
 	end
+	if (maxname) then
+		print(format(L["Found %s"],maxname))
+	end
+	return maxname
 end
 function addon:Info(...)
 	print(...)
 	for k,v in pairs(weapons) do
 	if (v) then
-		print(k,"=",GetItemInfo(v),"")
+		print(k,"=",v.name)
 	end
 	end
 	if (FishingPole) then
 	print(format(L["Fishing pole is %s"],GetItemInfo(FishingPole)))
 	end
 end
+local function pushWeapon(tb,...)
+	if (select(1,...)) then
+		if (select(7,...) == FishingPolesCategory) then return end
+		tb.name=select(1,...)
+		tb.skin=select(10,...)
+	end
+end
 function addon:StoreWeapons()
-	weapons[INVSLOT_MAINHAND]=GetInventoryItemID("player",INVSLOT_MAINHAND)
-	weapons[INVSLOT_OFFHAND]=GetInventoryItemID("player",INVSLOT_OFFHAND)
-	self:Info()
+	local id=GetInventoryItemID("player",INVSLOT_MAINHAND)
+	if (id) then pushWeapon(weapons[INVSLOT_MAINHAND],GetItemInfo(id)) end
+	id=GetInventoryItemID("player",INVSLOT_OFFHAND)
+	if (id) then pushWeapon(weapons[INVSLOT_OFFHAND],GetItemInfo(id)) end
 end
 function addon:RestoreWeapons()
-	if (weapons[INVSLOT_MAINHAND]) then EquipItemByName(weapons[INVSLOT_MAINHAND]) end
-	if (weapons[INVSLOT_OFFHAND]) then EquipItemByName(weapons[INVSLOT_OFFHAND]) end
+	if (weapons[INVSLOT_MAINHAND].name) then EquipItemByName(weapons[INVSLOT_MAINHAND].name) end
+	if (weapons[INVSLOT_OFFHAND].name) then EquipItemByName(weapons[INVSLOT_OFFHAND].name) end
 end
 function addon:OnInitialized()
 	Fishing,_,FishingIcon=GetSpellInfo(FishingId)
@@ -105,50 +145,101 @@ function addon:OnInitialized()
 end
 function addon:Discovery()
 	FishingPolesCategory=select(7,GetItemInfo(FishingPoleId))
-	if (not FishingPolesCategory) then
-		debug("Attempt to load category")
-		sdebug("sAttempt to load category")
-		self:ScheduleTimer("discovery",2)
+	Fishing,_,FishingIcon=GetSpellInfo(FishingId)
+	if (not FishingPolesCategory or not Fishing) then
+		self:ScheduleTimer("Discovery",2)
 	else
 		self:Init()
 	end
 end
+function addon:ApplyRESTORE(value)
+	if (true) then
+		self:RegisterEvent("PLAYER_LOGOUT","RestoreWeapons")
+	else
+		self:UnregisterEvent("PLAYER_LOGOUT")
+	end
+end
 function addon:Init()
 	self:StoreWeapons()
-	if (Fishing) then
+	local prof1, prof2, archaeology, fishing, cooking, firstAid = GetProfessions()
+	if (fishing) then
+		CanFish = true
+	end
+	if (CanFish) then
 		self:GenerateFrame()
 		self:RegisterEvent("PLAYER_REGEN_DISABLED")
+		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 		self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		self:AddToggle("RESTORE",true,L["Restore weapons on logout"],L["Always attempts to restore weapon on logout"])
 		self:AddChatCmd("fish","Fish")
-		self:AddChatCmd("nofish","Fish")
-		self:GetFishingPole()
-		self:AddOpenCmd("info","Info")
+		self:AddChatCmd("nofish","NoFish")
+		FishingPole=self:GetFishingPole()
+		self:AddPrivateOpenCmd("info","Info")
 		self:loadHelp()
+		self:UnregisterEvent("SKILL_LINES_CHANGED")
 	else
-		print(L["You can't fish!"])
+		self:RegisterEvent("SKILL_LINES_CHANGED")
+		print(L["You should learn to fish, before fishing!"])
+	end
+end
+function addon:StartFishFrame(atCursor)
+	IsFishing=true
+	local f=self.FishFrame
+	f:SetMacrotext("/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing,'','')
+	f:SetIcon("Interface\\Icons\\Trade_Fishing")
+	f:SetCloseMacro("/stopcasting")
+	f:SetCallback("OnClick",function(this)
+				this:FadeStop()
+				this:FadeOut(5)
+	end)
+	if (atCursor) then
+	f:ShowAtMouse()
+	else
+	f:ShowAtCenter()
+	end
+end
+function addon:StopFishFrame(show)
+	local body,main,off='/stopcastinc',weapons[INVSLOT_MAINHAND].name,weapons[INVSLOT_OFFHAND].name
+	if (main and off) then
+			body=format("/stopcasting\n/equip %s\n/equip %s",main,off)
+	elseif (main or off) then
+			body=format("/stopcasting\n/equip %s",main or off)
+	else
+			body='/stopcasting'
+	end
+	local f=self.StopFrame
+	f:SetModifiedCast('','macrotext',1,body)
+	if (show) then
+	f:Show()
+	else
+	f:Hide()
 	end
 end
 function addon:GenerateFrame()
-		local f=LibStub("AceGUI-3.0"):Create("AlarCastSingleButton")
+		self.FishFrame=LibStub("AceGUI-3.0"):Create("AlarCastSingleButton")
+		local f=self.FishFrame
 		f:Hide()
-		f:SetSpell(Fishing)
-		f:SetModifiedCast(f.frame,'',2,Fishing)
-		f:SetCallback("OnClick",function(this)
-					self:EquipFishingPole()
-					this:FadeStop()
-					this:FadeOut(5)
-		end)
+		f:SetMacrotext("/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing,'','')
+		f:SetIcon("Interface\\Icons\\Trade_Fishing")
+		f:SetCloseMacro("/stopcasting")
 		f:SetCallback("OnFadeEnd",function(this) end)
 		f:SetCallback("OnClose",function(this)  self:NoFish() end )
 		f:SetTitleWidth(0)
-		self.FishFrame=f
+		self.StopFrame=LibStub("AceGUI-3.0"):Create("AlarCastHeader")
+		local f=self.StopFrame
+		f:Hide()
+		f:SetTitle(BINDING_NAME_STOPCASTING .. ": " .. Fishing)
+		f:AutoSize()
+		f:SetCallback("OnClick",function() addon.FishFrame:Hide() addon.StopFrame:Hide() addon:NoFish() end)
 end
+
 function addon:NoFish()
-	if (IsEquippedItemType(FishingPolesCategory)) then
+	if (IsEquippedItemType(FishingPolesCategory) and not InCombatLockdown()) then
 		self:RestoreWeapons()
+		self.FishFrame:Hide()
+	self.StopFrame:Hide()
 	end
-	self.FishFrame:Hide()
 	IsFishing=false
 end
 function addon:EquipFishingPole()
@@ -160,8 +251,9 @@ function addon:EquipFishingPole()
 		if (not FishingPole) then
 			FishingPole=self:GetFishingPole()
 		end
-		if (not FishingPole) then
+		if (not FishingPole and NoPoleWarn) then
 			UIErrorsFrame:AddMessage(format(L["Maybe you want to buy a %s"] , FishingPolesCategory), 1,0,0, 1.0, 40)
+			NoPoleWarn=false
 		else
 				self:StoreWeapons()
 				EquipItemByName(FishingPole)
@@ -169,12 +261,10 @@ function addon:EquipFishingPole()
 	end
 end
 function addon:Fish(atCursor)
-	self:EquipFishingPole()
-	if (type(atCursor)=="boolean" and atCursor) then
-	self.FishFrame:ShowAtMouse()
-	else
-	self.FishFrame:ShowAtCenter()
+	if (not UnitChannelInfo("player")) then
+		self:EquipFishingPole()
 	end
+	self:StartFishFrame(atCursor)
 	IsFishing=true
 end
 _G.FISH=addon
