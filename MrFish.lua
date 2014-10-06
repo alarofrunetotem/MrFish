@@ -249,7 +249,6 @@ function addon:EquipFishingPole()
 		UIErrorsFrame:AddMessage(L["Better stick to fighting"], 1,0,0, 1.0, 40)
 		return
 	end
-
 	if (not IsEquippedItemType(FishingPolesCategory)) then
 		FishingPole=self:GetFishingPole()
 		if (not FishingPole and NoPoleWarn) then
