@@ -64,10 +64,9 @@ function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
 	if (slot==INVSLOT_MAINHAND or slot==INVSLOT_OFFHAND) then
 		local ID=GetInventoryItemID("player",slot)
 		if (ID) then
-			IsFishing=select(7,GetItemInfo(ID))==FishingPolesCategory
-			if (IsFishing) then
+			if (select(7,GetItemInfo(ID))==FishingPolesCategory) then
 				FishingPole=GetItemInfo(ID)
-				self:Fish()
+				self:Fish(IsFishing)
 			else
 				self:StoreWeapons()
 				if (IsFishing) then self:NoFish() end
