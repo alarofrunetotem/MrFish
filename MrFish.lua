@@ -49,9 +49,10 @@ function addon:COMBAT_LOG_EVENT_UNFILTERED(_,timestamp,event,hidecaster,sguid,sn
 			if (type(spellname)=="string" and spellname:find(Fishing)) then
 				if (kind=="BUFF") then
 					if (event == "SPELL_AURA_REMOVED") then
-						self:StartFishFrame(true)
+						if (IsFishing) then self:StartFishFrame(true) end
 						self:StopFishFrame(false)
 					elseif (event == "SPELL_AURA_APPLIED") then
+						IsFishing=true
 						self:StopFishFrame(true)
 					end
 				end
@@ -231,14 +232,15 @@ function addon:GenerateFrame()
 		f:Hide()
 		f:SetTitle(BINDING_NAME_STOPCASTING .. ": " .. Fishing)
 		f:AutoSize()
-		f:SetCallback("OnClick",function() addon.FishFrame:Hide() addon.StopFrame:Hide() addon:NoFish() end)
+		f:SetCallback("OnClick",function() print("Called StoFrame OnClick Callback") addon:NoFish() end)
 end
 
 function addon:NoFish()
-	if (IsEquippedItemType(FishingPolesCategory) and not InCombatLockdown()) then
-		self:RestoreWeapons()
+	if (not InCombatLockdown()) then
+		if (IsEquippedItemType(FishingPolesCategory)) then self:RestoreWeapons() end
+		self.FishFrame:FadeStop()
 		self.FishFrame:Hide()
-	self.StopFrame:Hide()
+		self.StopFrame:Hide()
 	end
 	IsFishing=false
 end
