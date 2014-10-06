@@ -249,10 +249,9 @@ function addon:EquipFishingPole()
 		UIErrorsFrame:AddMessage(L["Better stick to fighting"], 1,0,0, 1.0, 40)
 		return
 	end
+
 	if (not IsEquippedItemType(FishingPolesCategory)) then
-		if (not FishingPole) then
-			FishingPole=self:GetFishingPole()
-		end
+		FishingPole=self:GetFishingPole()
 		if (not FishingPole and NoPoleWarn) then
 			UIErrorsFrame:AddMessage(format(L["Maybe you want to buy a %s"] , FishingPolesCategory), 1,0,0, 1.0, 40)
 			NoPoleWarn=false

@@ -2,7 +2,7 @@
 ## Title: MrFish
 ## Notes: Quick line cast and equipment switch
 ## Author: Alar of Daggerspine
-## Version: @project-version@ r@project-revision@
+## Version: #@project-version@ @project-abbreviated-hash@
 ## X-Version: 1.3.2
 ## eMail: alar@aspide.it
 ## RequiredDeps:
