@@ -37,7 +37,7 @@ function addon:PLAYER_REGEN_DISABLED()
 	local channeling=UnitChannelInfo("player")
 	if (true or channeling == Fishing) then
 		if (self:HasEquippedFishingPole()) then
-			UIErrorsFrame:AddMessage(L["*** You dont have an weapon!!!! ***"], 1,0,0, 1.0, 40)
+			UIErrorsFrame:AddMessage(L["*** You dont have a weapon!!!! ***"], 1,0,0, 1.0, 40)
 			self:StopFishFrame()
 		end
 	end
@@ -67,11 +67,16 @@ function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
 			if (select(7,GetItemInfo(ID))==FishingPolesCategory) then
 				FishingPole=GetItemInfo(ID)
 				self:Fish(IsFishing)
+				return
 			else
 				self:StoreWeapons()
 				if (IsFishing) then self:NoFish() end
+				return
 			end
 		end
+	end
+	if (not InCombatLockdown()) then
+	FishingPole=self:GetFishingPole()
 	end
 end
 function addon:HasEquippedFishingPole()
@@ -90,7 +95,7 @@ function addon:GetFishingPole()
 	-- Discover localized category name
 	local maxlevel=0
 	local maxname
-	print(format(L["Scanning your bags for %s"],FishingPolesCategory))
+	print(format(L["Searching your bags for %s"],FishingPolesCategory))
 	for bag=BACKPACK_CONTAINER,NUM_BAG_SLOTS,1 do
 		for slot=1,GetContainerNumSlots(bag),1 do
 			local ID=GetContainerItemID(bag,slot)
@@ -139,6 +144,7 @@ function addon:RestoreWeapons()
 	if (weapons[INVSLOT_OFFHAND].name) then EquipItemByName(weapons[INVSLOT_OFFHAND].name) end
 end
 function addon:OnInitialized()
+	print(format("Questa non ha %%s",'pippo'))
 	Fishing,_,FishingIcon=GetSpellInfo(FishingId)
 	self:Discovery()
 	return true
@@ -231,7 +237,7 @@ function addon:GenerateFrame()
 		f:Hide()
 		f:SetTitle(BINDING_NAME_STOPCASTING .. ": " .. Fishing)
 		f:AutoSize()
-		f:SetCallback("OnClick",function() print("Called StoFrame OnClick Callback") addon:NoFish() end)
+		f:SetCallback("OnClick",function() addon:NoFish() end)
 end
 
 function addon:NoFish()
