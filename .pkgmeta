@@ -5,10 +5,10 @@ externals:
 	libs/Ace3:
 		url: svn://svn.wowace.com/wow/ace3/mainline/trunk
 		tag: latest
-	libs/AlarShared-3.0:
-		url: git://git.curseforge.net/wow/alar-art-remover/mainline.git/AlarShared-3.0
-#    url: svn://svn.curseforge.net/wow/alar-art-remover/mainline/trunk/AlarShared-3.0
-#    tag: latest
+	tmp:
+		url: git://git.curseforge.net/wow/alar-art-remover/mainline.git
+	move-folders:
+		MrFish/tmp/AlarShared-3.0: MrFish/libs/AlarShared-3.0
 manual-changelog:
 		filename: CHANGELOG.txt
 		markup-type: creole
@@ -17,4 +17,5 @@ manual-changelog:
 ignore:
 - .buildpath
 - .project
+- tmp
 
