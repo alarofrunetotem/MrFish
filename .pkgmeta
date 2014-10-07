@@ -16,9 +16,3 @@ manual-changelog:
 ignore:
 - .buildpath
 - .project
-- tmp
-- AlarArtRemover.lua
-- AlarArtRemover.toc
-- tmp/icon.tga
-- libs/localization.lua
-
