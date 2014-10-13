@@ -144,7 +144,6 @@ function addon:RestoreWeapons()
 	if (weapons[INVSLOT_OFFHAND].name) then EquipItemByName(weapons[INVSLOT_OFFHAND].name) end
 end
 function addon:OnInitialized()
-	print(format("Questa non ha %%s",'pippo'))
 	Fishing,_,FishingIcon=GetSpellInfo(FishingId)
 	self:Discovery()
 	return true
@@ -272,4 +271,3 @@ function addon:Fish(atCursor)
 	self:StartFishFrame(atCursor)
 	IsFishing=true
 end
-_G.FISH=addon
