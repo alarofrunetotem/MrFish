@@ -15,6 +15,9 @@ Starts fishing
 Stops fishing
 
 ]])
+self:RelNotes(1,1,1,[[
+Fix:removed an old debug message
+]])
 self:RelNotes(1,0,1,[[
 Feature; Portoguese localization
 Fix: fixes a possile crash

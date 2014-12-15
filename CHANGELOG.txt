@@ -1,4 +1,6 @@
 =Mr Fish=
+==Release 1.0.2==
+Fix:removed an old debug message
 ==Release 1.0.1==
 Feature; Portoguese localization
 Fix: fixes a possile crash
