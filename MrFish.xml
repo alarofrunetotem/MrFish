@@ -1,0 +1,141 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="MrFish.lua"/>
+	<Button name="MrFishBaitButton" enableMouse="true" inherits="ItemButtonTemplate,SecureActionButtonTemplate" virtual="true">
+		<Size x="32" y="32"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Icon">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<FontString parentKey="Quantity" inherits="NumberFontNormal">
+					<Anchors>
+						<Anchor point="TOPRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Level" inherits="NumberFontNormal">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Shortcut" inherits="SystemFont_Outline_Small">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+					</Anchors>
+					<color r="1.0" g="1.0" b="1.0" />
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnEnter>
+				GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+				if (self.itemID) then
+					GameTooltip:SetItemByID(self.itemID);
+					return;
+				end
+				if (self.currencyID and self.currencyID ~= 0) then
+					GameTooltip:SetCurrencyByID(self.currencyID);
+					return;
+				end
+				if (self.title) then
+					GameTooltip:SetText(self.title);
+				end
+				if (self.tooltip) then
+					GameTooltip:AddLine(self.tooltip, 1, 1, 1, true);
+				end
+				GameTooltip:Show();
+			</OnEnter>
+			<OnLeave function="GameTooltip_Hide"/>
+		</Scripts>
+	</Button>
+	<Button name="MrFishButton" parent="UIParent"  movable="true" enableMouse="true" clampedToScreen="true" inherits="MoneyWonALertFrameTemplate,SecureActionbuttonTemplate">
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="0"/>
+		</Anchors>
+		<Scripts>
+			<OnLoad>
+				self:RegisterForDrag("LeftButton")
+				self:RegisterForClicks("AnyUp")
+				self:SetWidth(160)
+				self.waitAndAnimOut:Stop();
+			</OnLoad>
+			<OnDragStart>
+				self:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				self:StopMovingOrSizing()
+			</OnDragStop>
+			<OnEnter>
+				self.waitAndAnimOut:Stop();
+				self.waitAndAnimOut.animOut:SetStartDelay(0.1);
+				MrFish:OnEnter(self);
+			</OnEnter>
+			<OnLeave>
+				self.waitAndAnimOut.animOut:SetStartDelay(0.1);
+				self.waitAndAnimOut:Play()
+				GameTooltip:Hide();
+			</OnLeave>
+			<OnShow>
+				self.waitAndAnimOut:Play()
+			</OnShow>
+		</Scripts>
+	</Button>
+	<Frame name="MrFishBaitFrame" enableMouse="true" movable="true" clampedToScreen="true" parent="UIParent" hidden="true">
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="-300"/>
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Title" inherits="GameFontNormal" text="Baits">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="5" y="-5"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="HIGHLIGHT">
+				<Texture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="7" y="-2" />
+						<Anchor point="TOPRIGHT" x="-7" y="-2" />
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button parentArray="baits" inherits="MrFishBaitButton" visible="true">
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" x="0" y="0" />
+				</Anchors>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				self:RegisterForDrag("LeftButton")
+			</OnLoad>
+			<OnDragStart>
+				self:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				self:StopMovingOrSizing()
+			</OnDragStop>
+		</Scripts>
+	</Frame>
+	<Button name="MrFishStopButton" movable="true" enableMouse="true" parent="UIParent" clampedToScreen="true" inherits="UIPanelButtonTemplate,SecureActionButtonTemplate">
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="-300"/>
+		</Anchors>
+		<Scripts>
+			<OnDragStart>
+				self:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				self:StopMovingOrSizing()
+			</OnDragStop>
+		</Scripts>
+	</Button>
+</Ui>
