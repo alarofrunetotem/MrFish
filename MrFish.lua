@@ -1,28 +1,53 @@
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- MUST BE LINE 1
-local toc=select(4,GetBuildInfo())
-local me, ns = ...
-local pp=print
-local L=LibStub("AceLocale-3.0"):GetLocale(me,true)
-local C=LibStub("AlarCrayon-3.0"):GetColorTable()
-local addon=LibStub("AlarLoader-3.0")(__FILE__,me,ns):CreateAddon(me,true) --#Addon
-local print=ns.print or print
-local debug=ns.debug or print
------------------------------------------------------------------
+local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
+local me,ns=...
+--@debug@
+--Postal_BlackBookButton
+-- SendMailNameEditBox
+LoadAddOn("Blizzard_DebugTools")
+LoadAddOn("LibDebug")
+if LibDebug then LibDebug() end
+--@end-debug@
+--[===[@non-debug@
+local print=function() end
+local DevTools_Dump=function() end
+--@end-non-debug@]===]
+local addon --#MailCommander
+local LibInit,minor=LibStub("LibInit",true)
+assert(LibInit,me .. ": Missing LibInit, please reinstall")
+if minor >=21 then
+	addon=LibStub("LibInit"):NewAddon(ns,me,{noswitch=true,profile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceBucket-3.0")
+else
+	addon=LibStub("LibInit"):NewAddon(me,"AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceBucket-3.0")
+end
+local C=addon:GetColorTable()
+local L=addon:GetLocale()
 local FishingId=131474
 local Fishing=''
 local FishingIcon=''
 local FishingPole
 local FishingPoleId=6256
 local FishingPolesCategory
+local pattern=format(ERR_SKILL_UP_SI,"Fishing","999"):gsub("999.","(%%d+)"):gsub("Fishing",".*")
 local IsFishing
 local CanFish
 local NoPoleWarn=true
+local start
+local stop
+local baits
+local fishingName="Fishing"
+local fishingTexture="Interface\\Icons\\Trade_Fishing"
+local fishingSkill=0
+local fishingCap=0
 local weapons={
 [INVSLOT_MAINHAND]={},
 [INVSLOT_OFFHAND]={},
 }
-function addon:SKILL_LINES_CHANGED(...)
-	self:Init()
+function addon:CHAT_MSG_SKILL(event,msg)
+	local skill=msg:match(pattern)
+	if skill then
+		fishingSkill=skill
+		start.Amount:SetFormattedText("%d/%d",fishingSkill,fishingCap)
+	end
 end
 function addon:PLAYER_REGEN_ENABLED()
 	if (not IsFishing) then
@@ -31,28 +56,28 @@ function addon:PLAYER_REGEN_ENABLED()
 	end
 end
 function addon:PLAYER_REGEN_DISABLED()
-	local channeling=UnitChannelInfo("player")
-	if (true or channeling == Fishing) then
-		if (self:HasEquippedFishingPole()) then
-			UIErrorsFrame:AddMessage(L["*** You dont have a weapon!!!! ***"], 1,0,0, 1.0, 40)
-			self:StopFishFrame()
-		end
-	end
+	local id=GetInventoryItemID("player",INVSLOT_MAINHAND)
+	self:RestoreWeapons()
+end
+function addon:FISH_ENDED()
+	self:FillBait()
+	self:StartFishFrame(true)
+end
+function addon:FISH_STARTED()
+	stop:Show()
 end
 function addon:COMBAT_LOG_EVENT_UNFILTERED(_,timestamp,event,hidecaster,sguid,sname,sflags,sraidflags,dguid,dname,dflags,dRaidflags,spellid,spellname,stack,kind,...)
 	if (bit.band(COMBATLOG_OBJECT_AFFILIATION_MINE,dflags)==1) then
 --@debug@
-		debug(event,sname,dname,spellid,'(',spellname,')',stack,kind,...)
+		print(event,sname,dname,spellid,'(',spellname,')',stack,kind,...)
 --@end-debug@
-		if (self.FishFrame and not InCombatLockdown()) then
+		if (start and not InCombatLockdown()) then
 			if (type(spellname)=="string" and spellname:find(Fishing)) then
 				if (kind=="BUFF") then
 					if (event == "SPELL_AURA_REMOVED") then
-						if (IsFishing) then self:StartFishFrame(true) end
-						self:StopFishFrame(false)
+						self:FISH_ENDED()
 					elseif (event == "SPELL_AURA_APPLIED") then
-						IsFishing=true
-						self:StopFishFrame(true)
+						self:FISH_STARTED()
 					end
 				end
 			end
@@ -60,13 +85,13 @@ function addon:COMBAT_LOG_EVENT_UNFILTERED(_,timestamp,event,hidecaster,sguid,sn
 	end
 end
 function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
+	print(event,slot,hasItem)
 	if (slot==INVSLOT_MAINHAND or slot==INVSLOT_OFFHAND) then
 		local ID=GetInventoryItemID("player",slot)
 		if (ID) then
 			if (select(7,GetItemInfo(ID))==FishingPolesCategory) then
 				FishingPole=GetItemInfo(ID)
-				self:Fish(IsFishing)
-				return
+				if not IsFishing then self:Fish(IsFishing) end
 			else
 				self:StoreWeapons()
 				if (IsFishing) then self:NoFish() end
@@ -94,7 +119,6 @@ function addon:GetFishingPole()
 	-- Discover localized category name
 	local maxlevel=0
 	local maxname
-	print(format(L["Searching your bags for %s"],FishingPolesCategory))
 	for bag=BACKPACK_CONTAINER,NUM_BAG_SLOTS,1 do
 		for slot=1,GetContainerNumSlots(bag),1 do
 			local ID=GetContainerItemID(bag,slot)
@@ -110,19 +134,18 @@ function addon:GetFishingPole()
 		end
 	end
 	if (maxname) then
-		print(format(L["Found %s"],maxname))
+		self:Print(format(L["Found %s"],maxname))
 	end
 	return maxname
 end
 function addon:Info(...)
-	print(...)
 	for k,v in pairs(weapons) do
 	if (v) then
-		print(k,"=",v.name)
+		self:Print(k,"=",v.name)
 	end
 	end
 	if (FishingPole) then
-	print(format(L["Fishing pole is %s"],GetItemInfo(FishingPole)))
+		self:Print(format(L["Fishing pole is %s"],GetItemInfo(FishingPole)))
 	end
 end
 local function pushWeapon(tb,...)
@@ -133,6 +156,9 @@ local function pushWeapon(tb,...)
 	end
 end
 function addon:StoreWeapons()
+	--@debug@
+	print("Storing weapons")
+	--@end-debug@
 	local id=GetInventoryItemID("player",INVSLOT_MAINHAND)
 	if (id) then pushWeapon(weapons[INVSLOT_MAINHAND],GetItemInfo(id)) end
 	id=GetInventoryItemID("player",INVSLOT_OFFHAND)
@@ -142,17 +168,25 @@ function addon:RestoreWeapons()
 	if (weapons[INVSLOT_MAINHAND].name) then EquipItemByName(weapons[INVSLOT_MAINHAND].name) end
 	if (weapons[INVSLOT_OFFHAND].name) then EquipItemByName(weapons[INVSLOT_OFFHAND].name) end
 end
-function addon:OnInitialized()
-	Fishing,_,FishingIcon=GetSpellInfo(FishingId)
-	self:Discovery()
-	return true
+
+function addon:SKILL_LINES_CHANGED()
+	if (not CanFish) then
+		self:Discovery()
+	end
 end
 function addon:Discovery()
+	local _
 	FishingPolesCategory=select(7,GetItemInfo(FishingPoleId))
 	Fishing,_,FishingIcon=GetSpellInfo(FishingId)
 	if (not FishingPolesCategory or not Fishing) then
-		self:ScheduleTimer("Discovery",2)
+--@debug@
+		print("Rescheduled")
+--@end-debug@
+		self:ScheduleTimer("Discovery",0.5)
 	else
+--@debug@
+		print("Init")
+--@end-debug@
 		self:Init()
 	end
 end
@@ -170,41 +204,63 @@ function addon:Init()
 		CanFish = true
 	end
 	if (CanFish) then
-		self:GenerateFrame()
+		fishingName,fishingTexture,fishingSkill,fishingCap=GetProfessionInfo(fishing)
+		self:SetupFrames()
 		self:RegisterEvent("PLAYER_REGEN_DISABLED")
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 		self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-		self:AddToggle("RESTORE",true,L["Restore weapons on logout"],L["Always attempts to restore weapon on logout"])
-		self:AddChatCmd("fish","Fish")
-		self:AddChatCmd("nofish","NoFish")
-		FishingPole=self:GetFishingPole()
-		self:AddPrivateOpenCmd("info","Info")
-		self:loadHelp()
+		self:RegisterEvent("CHAT_MSG_SKILL")
 		self:UnregisterEvent("SKILL_LINES_CHANGED")
+		FishingPole=self:GetFishingPole()
+		self:SetupFrames()
 	else
-		self:RegisterEvent("SKILL_LINES_CHANGED")
 		print(L["You should learn to fish, before fishing!"])
 	end
 end
+function addon:ApplyMINIMAP(value)
+	if value then
+		icon:Hide(me)
+	else
+		icon:Show(me)
+	end
+	self.db.profile.ldb={hide=value}
+end
+function addon:ShowAtMouse(frame)
+	print("mouse")
+	local scale=UIParent:GetScale()
+	local x,y=GetCursorPosition()
+	frame:ClearAllPoints()
+	frame:SetPoint("CENTER",UIParent,"BOTTOMLEFT",x/scale + 10/scale,y/scale)
+	frame.waitAndAnimOut.animOut:SetStartDelay(2);
+	frame:Show()
+end
+function addon:ShowAtCenter(frame,offset)
+	print("center")
+	offset=offset or 10
+	frame:ClearAllPoints()
+	frame:SetPoint("CENTER",UIParent,"CENTER",offset,0)
+	frame:Show()
+end
 function addon:StartFishFrame(atCursor)
 	IsFishing=true
-	local f=self.FishFrame
-	f:SetMacrotext("/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing,'','')
-	f:SetIcon("Interface\\Icons\\Trade_Fishing")
-	f:SetCloseMacro("/stopcasting")
-	f:SetCallback("OnClick",function(this)
-				this:FadeStop()
-				this:FadeOut(5)
-	end)
 	if (atCursor) then
-	f:ShowAtMouse()
+		self:ShowAtMouse(start)
 	else
-	f:ShowAtCenter()
+		self:EquipFishingPole()
+		self:ShowAtCenter(start)
 	end
+	self:FillBait()
+	baits:Show()
+	stop:Show()
+	fishingSkill=select(4,GetProfessions())
+	if (fishingSkill) then
+		fishingSkill,fishingCap=select(3,GetProfessionInfo(fishingSkill))
+	end
+	start.Amount:SetFormattedText("%d/%d",fishingSkill,fishingCap)
 end
 function addon:StopFishFrame(show)
-	local body,main,off='/stopcastinc',weapons[INVSLOT_MAINHAND].name,weapons[INVSLOT_OFFHAND].name
+	local body,main,off='/stopcasting',weapons[INVSLOT_MAINHAND].name,weapons[INVSLOT_OFFHAND].name
 	if (main and off) then
 			body=format("/stopcasting\n/equip %s\n/equip %s",main,off)
 	elseif (main or off) then
@@ -212,39 +268,126 @@ function addon:StopFishFrame(show)
 	else
 			body='/stopcasting'
 	end
-	local f=self.StopFrame
-	f:SetModifiedCast('','macrotext',1,body)
+	body="/dump 'macro partita'\n" .. body
+	stop:SetAttribute("type","macro");
+	stop:SetAttribute("macrotext",body)
 	if (show) then
-	f:Show()
+		stop:Show()
 	else
-	f:Hide()
+		stop:Hide()
 	end
 end
-function addon:GenerateFrame()
-		self.FishFrame=LibStub("AceGUI-3.0"):Create("AlarCastSingleButton")
-		local f=self.FishFrame
-		f:Hide()
-		f:SetMacrotext("/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing,'','')
-		f:SetIcon("Interface\\Icons\\Trade_Fishing")
-		f:SetCloseMacro("/stopcasting")
-		f:SetCallback("OnFadeEnd",function(this) end)
-		f:SetCallback("OnClose",function(this)  self:NoFish() end )
-		f:SetTitleWidth(0)
-		self.StopFrame=LibStub("AceGUI-3.0"):Create("AlarCastHeader")
-		local f=self.StopFrame
-		f:Hide()
-		f:SetTitle(BINDING_NAME_STOPCASTING .. ": " .. Fishing)
-		f:AutoSize()
-		f:SetCallback("OnClick",function() addon:NoFish() end)
+function addon:OnEnter(this)
+--@debug@
+	print(this)
+--@end-debug@
+end
+function addon:OnAnimationStop(this,requested)
+	if (not self:IsFishing()) then
+		self:RestoreWeapons()
+		self:Print("Stopped fishing, let's remove fishing equipment")
+		stop:Hide()
+		baits:Hide()
+	end
+end
+local waitingframes={}
+function addon:GET_ITEM_INFO_RECEIVED(event,itemID)
+	local f=waitingframes[itemID]
+	--@debug@
+	print(event,itemID,f)
+	--@end-debug@
+	if f then self:SetIcon(f) end
+end
+function addon:SetIcon(frame)
+	local itemName, _, itemRarity, _, _, _, _, _, _, itemTexture = GetItemInfo(frame.itemID);
+	if itemTexture then
+		frame.Icon:SetTexture(itemTexture);
+	else
+		--@debug@
+		print("Unable to retrieve info for ",frame.itemID)
+		--@end-debug@
+		waitingframes[frame.itemID]=frame
+	end
+end
+function addon:FillBait()
+	local baits=MrFishBaitFrame
+	local n=0
+	for i=1,#ns.baits do
+		local itemID=ns.baits[i]
+		local qt=GetItemCount(itemID)
+		if qt and qt > 0 then
+			n=n+1
+			local bait=baits.baits[n]
+			if (not bait) then
+				bait=CreateFrame("Button",nil,baits,"MrFishBaitButton")
+				baits.baits[n]=bait
+				bait:SetPoint("LEFT",baits.baits[n-1],"RIGHT",0,0)
+			end
+			bait:SetSize(40,40)
+			bait.Icon:SetSize(40,40)
+			bait.itemID=itemID
+			bait.Quantity:SetFormattedText("%d",GetItemCount(itemID))
+			bait.Quantity:SetTextColor(C.Yellow())
+			bait.Quantity:Show()
+			bait:EnableMouse(true)
+			bait:RegisterForClicks("LeftButtonDown")
+			bait:SetAttribute("type","item")
+			bait:SetAttribute("item",select(2,GetItemInfo(itemID)))
+			bait:SetScript("PostClick",function() self:FillBait() end)
+			self:SetIcon(bait)
+			bait:Show()
+		end
+	end
+	for i=n+1,#baits.baits do
+		baits.baits[n]:Hide()
+	end
+	baits:SetWidth(40*n)
+	baits:SetHeight(60)
+	local backdrop = {
+			--bgFile="Interface\\TutorialFrame\\TutorialFrameBackground",
+			bgFile="Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+			edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",
+			tile=true,
+			tileSize=16,
+			edgeSize=16,
+			insets={bottom=2,left=7,right=7,top=2}
+	}
+	baits:SetBackdrop(backdrop)
+end
+function addon:SetupFrames()
+	self:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+	start.Icon:SetTexture("Interface\\Icons\\Trade_Fishing")
+	start.Label:SetText(Fishing)
+	start.Amount:SetFormattedText("%d/%d",fishingSkill,fishingCap)
+	start:SetAttribute("type1","macro")
+	start:SetAttribute("macrotext","/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
+	start:SetAttribute("type2","macro")
+	start:SetAttribute("macrotext2","/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
+	start:SetAttribute("shift-type1","macro")
+	start:SetAttribute("shift-macrotext1","/stopcasting")
+	start.waitAndAnimOut:SetScript("OnFinished",function(this,requested) addon:OnAnimationStop(this,requested) end)
+	start:SetScript("PostClick",function(this)
+		this.waitAndAnimOut:Stop();
+		this.waitAndAnimOut.animOut:SetStartDelay(2);
+
+		this.waitAndAnimOut:Play()
+	end )
+	stop:SetText(BINDING_NAME_STOPCASTING .. ": " .. Fishing )
+	stop:SetWidth(stop:GetFontString():GetStringWidth()+20)
+	stop:SetScript("PostClick",function(this)
+		addon:NoFish()
+	end
+	)
+	self:FillBait()
+	self:StopFishFrame(false)
+
 end
 
 function addon:NoFish()
-	if (not InCombatLockdown()) then
-		if (IsEquippedItemType(FishingPolesCategory)) then self:RestoreWeapons() end
-		self.FishFrame:FadeStop()
-		self.FishFrame:Hide()
-		self.StopFrame:Hide()
-	end
+	self:OnLeaveCombat("RestoreWeapons")
+	start:Hide()
+	stop:Hide()
+	baits:Hide()
 	IsFishing=false
 end
 function addon:EquipFishingPole()
@@ -263,10 +406,76 @@ function addon:EquipFishingPole()
 			end
 	end
 end
+function addon:IsFishing()
+	return "Interface\\Icons\\Trade_Fishing"== select(4,UnitChannelInfo("player"))
+end
 function addon:Fish(atCursor)
-	if (not UnitChannelInfo("player")) then
+	start.waitAndAnimOut.animOut:SetStartDelay(60);
+	IsFishing=true
+	if (not self:IsFishing()) then
 		self:EquipFishingPole()
 	end
 	self:StartFishFrame(atCursor)
-	IsFishing=true
 end
+------------------------------------
+-- Ldb stuff
+ns.LMB = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
+ns.RMB = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
+ns.NMB = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:89:144:228:283\124t" -- no mouse button
+local fakeLdb={
+	type = "data source",
+	label = me,
+	text=L["Click to enter fish mode"],
+	category = "Interface",
+	icon="Interface\\Icons\\Trade_Fishing",
+	iconR=1,
+	iconG=1,
+	iconB=1,
+}
+local LDB=LibStub:GetLibrary("LibDataBroker-1.1",true)
+local ldb= LDB:NewDataObject(me,fakeLdb) --#ldb
+local icon = LibStub("LibDBIcon-1.0",true)
+local KEY_BUTTON1=ns.LMB
+local KEY_BUTTON2=ns.RMB
+-- ldb extension
+function ldb:Update()
+	if addon:IsFishing() then
+		button.icon:SetVertexColor(0,1,0)
+	else
+		button.icon:SetVertexColor(1,1,1)
+	end
+end
+function ldb:OnClick(button)
+	if button=="RightButton" then
+		addon:Gui()
+		return
+	else
+		if IsFishing then addon:NoFish() else addon:Fish(false) end
+	end
+
+end
+function ldb:OnTooltipShow(...)
+	self:AddLine("MrFisg")
+	self:AddDoubleLine(KEY_BUTTON1,L['Enter fish mode'],nil,nil,nil,C:Green())
+	self:AddDoubleLine(KEY_BUTTON2,L['Open configuration'],nil,nil,nil,C:Green())
+
+end
+function addon:OnInitialized()
+	start=MrFishButton
+	stop=MrFishStopButton
+	baits=MrFishBaitFrame
+	self:AddBoolean("MINIMAP",false,L["Hide minimap icon"],L["If you hide minimap icon, use /mac gui to access configuration and /mac requests to open requests panel"])
+	self:AddToggle("RESTORE",true,L["Restore weapons on logout"],L["Always attempts to restore weapon on logout"])
+	self:AddChatCmd("Fish","fish")
+	self:AddChatCmd("NoFish","nofish")
+	self:AddPrivateOpenCmd("info","Info")
+	self:RegisterEvent("SKILL_LINES_CHANGED")
+	self:Discovery()
+	if icon then
+		icon:Register(me,ldb,self.db.profile.ldb)
+	end
+	return true
+end
+
+_G.MrFish=addon
+
