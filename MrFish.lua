@@ -19,6 +19,8 @@ if minor >=21 then
 else
 	addon=LibStub("LibInit"):NewAddon(me,"AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceBucket-3.0")
 end
+local pairs=pairs
+local wipe=wipe
 local C=addon:GetColorTable()
 local L=addon:GetLocale()
 local FishingId=131474
@@ -41,6 +43,11 @@ local fishingSkill=0
 local fishingCap=0
 local fishingBonus=0
 local weapons
+local function fade(delay)
+		start.waitAndAnimOut:Stop();
+		start.waitAndAnimOut.animOut:SetStartDelay(delay or 0.1);
+		start.waitAndAnimOut:Play()
+end
 function addon:CHAT_MSG_SKILL(event,msg)
 	local skill=msg:match(pattern)
 	if skill then
@@ -54,8 +61,7 @@ function addon:CHAT_MSG_SKILL(event,msg)
 end
 function addon:PLAYER_REGEN_ENABLED()
 	if (not IsFishing) then
-		self.FishFrame:Hide()
-		self.StopFrame:Hide()
+		self:NoFish()
 	end
 end
 function addon:PLAYER_REGEN_DISABLED()
@@ -88,7 +94,9 @@ function addon:COMBAT_LOG_EVENT_UNFILTERED(_,timestamp,event,hidecaster,sguid,sn
 	end
 end
 function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
+--@debug@
 	print(event,slot,hasItem)
+--@end-debug@
 	if (slot==INVSLOT_MAINHAND or slot==INVSLOT_OFFHAND) then
 		local ID=GetInventoryItemID("player",slot)
 		if (ID) then
@@ -200,6 +208,7 @@ function addon:Init()
 	if (fishing) then
 		CanFish = true
 	end
+	self:SetupFrames()
 	if (CanFish) then
 		fishingName,fishingTexture,fishingSkill,fishingCap=GetProfessionInfo(fishing)
 		self:SetupFrames()
@@ -210,9 +219,9 @@ function addon:Init()
 		self:RegisterEvent("CHAT_MSG_SKILL")
 		self:UnregisterEvent("SKILL_LINES_CHANGED")
 		FishingPole=self:GetFishingPole()
-		self:SetupFrames()
 	else
-		print(L["You should learn to fish, before fishing!"])
+		self:Print(L["You should learn to fish, before fishing!"])
+		self:NoFish()
 	end
 end
 
@@ -222,8 +231,8 @@ function addon:ShowAtMouse(frame)
 	local x,y=GetCursorPosition()
 	frame:ClearAllPoints()
 	frame:SetPoint("CENTER",UIParent,"BOTTOMLEFT",x/scale + 10/scale,y/scale)
-	frame.waitAndAnimOut.animOut:SetStartDelay(2);
 	frame:Show()
+	fade(2)
 end
 function addon:ShowAtCenter(frame,offset)
 	print("center")
@@ -231,6 +240,7 @@ function addon:ShowAtCenter(frame,offset)
 	frame:ClearAllPoints()
 	frame:SetPoint("CENTER",UIParent,"CENTER",offset,0)
 	frame:Show()
+	fade(10)
 end
 function addon:StartFishFrame(atCursor)
 	IsFishing=true
@@ -244,7 +254,7 @@ function addon:StartFishFrame(atCursor)
 	baits:Show()
 	stop:Show()
 	fishingSkillID=select(4,GetProfessions())
-	if (fishingSkill) then
+	if (fishingSkillID) then
 		local _
 		fishingSkill,fishingCap,_,_,_,fishingBonus=select(3,GetProfessionInfo(fishingSkillID))
 	end
@@ -275,10 +285,7 @@ function addon:OnEnter(this)
 end
 function addon:OnAnimationStop(this,requested)
 	if (not self:IsFishing()) then
-		self:RestoreWeapons()
-		self:Print("Stopped fishing, let's remove fishing equipment")
-		stop:Hide()
-		baits:Hide()
+		self:NoFish()
 	end
 end
 local waitingframes={}
@@ -287,7 +294,18 @@ function addon:GET_ITEM_INFO_RECEIVED(event,itemID)
 	--@debug@
 	print(event,itemID,f)
 	--@end-debug@
-	if f then self:SetIcon(f) end
+	if f then
+		waitingframes[itemID]=nil
+		self:SetIcon(f)
+	end
+	for k,v in pairs(waitingframes) do
+		if v then return end
+	end
+	wipe(waitingframes)
+	--@debug@
+	print("Removed GET ITEM hook")
+	--@end-debug@
+	self:UnregisterEvent("GET_ITEM_INFO_RECEIVED")
 end
 function addon:SetIcon(frame)
 	local itemName, _, itemRarity, _, _, _, _, _, _, itemTexture = GetItemInfo(frame.itemID);
@@ -297,7 +315,6 @@ function addon:SetIcon(frame)
 		--@debug@
 		print("Unable to retrieve info for ",frame.itemID)
 		--@end-debug@
-		waitingframes[frame.itemID]=frame
 	end
 end
 function addon:FillBait()
@@ -359,10 +376,7 @@ function addon:SetupFrames()
 	start:SetAttribute("shift-macrotext1","/stopcasting")
 	start.waitAndAnimOut:SetScript("OnFinished",function(this,requested) addon:OnAnimationStop(this,requested) end)
 	start:SetScript("PostClick",function(this)
-		this.waitAndAnimOut:Stop();
-		this.waitAndAnimOut.animOut:SetStartDelay(2);
-
-		this.waitAndAnimOut:Play()
+		fade(2)
 	end )
 	stop:SetText(BINDING_NAME_STOPCASTING .. ": " .. Fishing )
 	stop:SetWidth(stop:GetFontString():GetStringWidth()+20)
@@ -375,13 +389,6 @@ function addon:SetupFrames()
 
 end
 
-function addon:NoFish()
-	self:OnLeaveCombat("RestoreWeapons")
-	start:Hide()
-	stop:Hide()
-	baits:Hide()
-	IsFishing=false
-end
 function addon:EquipFishingPole()
 	if (InCombatLockdown()) then
 		UIErrorsFrame:AddMessage(L["Better stick to fighting"], 1,0,0, 1.0, 40)
@@ -401,14 +408,7 @@ end
 function addon:IsFishing()
 	return "Interface\\Icons\\Trade_Fishing"== select(4,UnitChannelInfo("player"))
 end
-function addon:Fish(atCursor)
-	start.waitAndAnimOut.animOut:SetStartDelay(60);
-	IsFishing=true
-	if (not self:IsFishing()) then
-		self:EquipFishingPole()
-	end
-	self:StartFishFrame(atCursor)
-end
+
 ------------------------------------
 -- Ldb stuff
 ns.LMB = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
@@ -417,8 +417,8 @@ ns.NMB = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:89:
 local fakeLdb={
 	type = "data source",
 	label = me,
-	text=L["Click to enter fish mode"],
-	category = "Interface",
+	text=Fishing,
+	category = "Profession",
 	icon="Interface\\Icons\\Trade_Fishing",
 	iconR=1,
 	iconG=1,
@@ -430,12 +430,9 @@ local icon = LibStub("LibDBIcon-1.0",true)
 local KEY_BUTTON1=ns.LMB
 local KEY_BUTTON2=ns.RMB
 -- ldb extension
+local oldIsFishing
 function ldb:Update()
-	if addon:IsFishing() then
-		button.icon:SetVertexColor(0,1,0)
-	else
-		button.icon:SetVertexColor(1,1,1)
-	end
+	ldb.text=IsFishing and C(Fishing,"GREEN") or C(Fishing,"SILVER")
 end
 function ldb:OnClick(button)
 	if button=="RightButton" then
@@ -447,8 +444,8 @@ function ldb:OnClick(button)
 
 end
 function ldb:OnTooltipShow(...)
-	self:AddLine("MrFisg")
-	self:AddDoubleLine(KEY_BUTTON1,L['Enter fish mode'],nil,nil,nil,C:Green())
+	self:AddLine("MrFish")
+	self:AddDoubleLine(KEY_BUTTON1,L['Fishing mode on/off'],nil,nil,nil,C:Green())
 	self:AddDoubleLine(KEY_BUTTON2,L['Open configuration'],nil,nil,nil,C:Green())
 
 end
@@ -459,6 +456,7 @@ function addon:SetDbDefaults(default)
 	}
 end
 function addon:OnInitialized()
+	ldb:Update()
 	weapons=self.db.char.weapons
 	self:RestoreWeapons()
 	start=MrFishButton
@@ -491,6 +489,21 @@ function addon:ApplyRESTORE(value)
 		self:UnregisterEvent("PLAYER_LOGOUT")
 	end
 end
-
+function addon:Fish(atCursor)
+	IsFishing=true
+	if (not self:IsFishing()) then
+		self:EquipFishingPole()
+	end
+	self:StartFishFrame(atCursor)
+	ldb:Update()
+end
+function addon:NoFish()
+	self:OnLeaveCombat("RestoreWeapons")
+	start:Hide()
+	stop:Hide()
+	baits:Hide()
+	IsFishing=false
+	ldb:Update()
+end
 _G.MrFish=addon
 

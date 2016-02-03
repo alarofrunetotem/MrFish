@@ -80,9 +80,6 @@
 				self.waitAndAnimOut:Play()
 				GameTooltip:Hide();
 			</OnLeave>
-			<OnShow>
-				self.waitAndAnimOut:Play()
-			</OnShow>
 		</Scripts>
 	</Button>
 	<Frame name="MrFishBaitFrame" enableMouse="true" movable="true" clampedToScreen="true" parent="UIParent" hidden="true">
