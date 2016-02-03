@@ -15,7 +15,7 @@ local addon --#MailCommander
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
 if minor >=21 then
-	addon=LibStub("LibInit"):NewAddon(ns,me,{noswitch=true,profile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceBucket-3.0")
+	addon=LibStub("LibInit"):NewAddon(ns,me,{noswitch=true,profile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")
 else
 	addon=LibStub("LibInit"):NewAddon(me,"AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceBucket-3.0")
 end
@@ -36,17 +36,20 @@ local stop
 local baits
 local fishingName="Fishing"
 local fishingTexture="Interface\\Icons\\Trade_Fishing"
+local fishingSkillID
 local fishingSkill=0
 local fishingCap=0
-local weapons={
-[INVSLOT_MAINHAND]={},
-[INVSLOT_OFFHAND]={},
-}
+local fishingBonus=0
+local weapons
 function addon:CHAT_MSG_SKILL(event,msg)
 	local skill=msg:match(pattern)
 	if skill then
 		fishingSkill=skill
-		start.Amount:SetFormattedText("%d/%d",fishingSkill,fishingCap)
+		if (fishingSkill and fishingSkillID) then
+			local _
+			fishingCap,_,_,_,fishingBonus=select(4,GetProfessionInfo(fishingSkillID))
+			start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
+		end
 	end
 end
 function addon:PLAYER_REGEN_ENABLED()
@@ -190,13 +193,7 @@ function addon:Discovery()
 		self:Init()
 	end
 end
-function addon:ApplyRESTORE(value)
-	if (true) then
-		self:RegisterEvent("PLAYER_LOGOUT","RestoreWeapons")
-	else
-		self:UnregisterEvent("PLAYER_LOGOUT")
-	end
-end
+
 function addon:Init()
 	self:StoreWeapons()
 	local prof1, prof2, archaeology, fishing, cooking, firstAid = GetProfessions()
@@ -218,14 +215,7 @@ function addon:Init()
 		print(L["You should learn to fish, before fishing!"])
 	end
 end
-function addon:ApplyMINIMAP(value)
-	if value then
-		icon:Hide(me)
-	else
-		icon:Show(me)
-	end
-	self.db.profile.ldb={hide=value}
-end
+
 function addon:ShowAtMouse(frame)
 	print("mouse")
 	local scale=UIParent:GetScale()
@@ -253,11 +243,12 @@ function addon:StartFishFrame(atCursor)
 	self:FillBait()
 	baits:Show()
 	stop:Show()
-	fishingSkill=select(4,GetProfessions())
+	fishingSkillID=select(4,GetProfessions())
 	if (fishingSkill) then
-		fishingSkill,fishingCap=select(3,GetProfessionInfo(fishingSkill))
+		local _
+		fishingSkill,fishingCap,_,_,_,fishingBonus=select(3,GetProfessionInfo(fishingSkillID))
 	end
-	start.Amount:SetFormattedText("%d/%d",fishingSkill,fishingCap)
+	start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
 end
 function addon:StopFishFrame(show)
 	local body,main,off='/stopcasting',weapons[INVSLOT_MAINHAND].name,weapons[INVSLOT_OFFHAND].name
@@ -321,8 +312,8 @@ function addon:FillBait()
 			if (not bait) then
 				bait=CreateFrame("Button",nil,baits,"MrFishBaitButton")
 				baits.baits[n]=bait
-				bait:SetPoint("LEFT",baits.baits[n-1],"RIGHT",0,0)
 			end
+			bait:SetPoint("BOTTOMLEFT",baits,40*n-37,3)
 			bait:SetSize(40,40)
 			bait.Icon:SetSize(40,40)
 			bait.itemID=itemID
@@ -330,19 +321,20 @@ function addon:FillBait()
 			bait.Quantity:SetTextColor(C.Yellow())
 			bait.Quantity:Show()
 			bait:EnableMouse(true)
-			bait:RegisterForClicks("LeftButtonDown")
-			bait:SetAttribute("type","item")
+			bait:RegisterForClicks("LeftButtonDown","RightButtonDown")
+			bait:SetAttribute("type*","item")
 			bait:SetAttribute("item",select(2,GetItemInfo(itemID)))
-			bait:SetScript("PostClick",function() self:FillBait() end)
+			bait:SetScript("PostClick",function() self:ScheduleTimer("FillBait",5) end)
 			self:SetIcon(bait)
 			bait:Show()
 		end
+
 	end
 	for i=n+1,#baits.baits do
-		baits.baits[n]:Hide()
+		baits.baits[i]:Hide()
 	end
-	baits:SetWidth(40*n)
-	baits:SetHeight(60)
+	baits:SetWidth(40*n+6)
+	baits:SetHeight(65)
 	local backdrop = {
 			--bgFile="Interface\\TutorialFrame\\TutorialFrameBackground",
 			bgFile="Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
@@ -350,7 +342,7 @@ function addon:FillBait()
 			tile=true,
 			tileSize=16,
 			edgeSize=16,
-			insets={bottom=2,left=7,right=7,top=2}
+			insets={bottom=2,left=2,right=2,top=2}
 	}
 	baits:SetBackdrop(backdrop)
 end
@@ -460,7 +452,15 @@ function ldb:OnTooltipShow(...)
 	self:AddDoubleLine(KEY_BUTTON2,L['Open configuration'],nil,nil,nil,C:Green())
 
 end
+function addon:SetDbDefaults(default)
+	default.char.weapons={
+		[INVSLOT_MAINHAND]={},
+		[INVSLOT_OFFHAND]={},
+	}
+end
 function addon:OnInitialized()
+	weapons=self.db.char.weapons
+	self:RestoreWeapons()
 	start=MrFishButton
 	stop=MrFishStopButton
 	baits=MrFishBaitFrame
@@ -475,6 +475,21 @@ function addon:OnInitialized()
 		icon:Register(me,ldb,self.db.profile.ldb)
 	end
 	return true
+end
+function addon:ApplyMINIMAP(value)
+	if value then
+		icon:Hide(me)
+	else
+		icon:Show(me)
+	end
+	self.db.profile.ldb={hide=value}
+end
+function addon:ApplyRESTORE(value)
+	if (true) then
+		self:RegisterEvent("PLAYER_LOGOUT","RestoreWeapons")
+	else
+		self:UnregisterEvent("PLAYER_LOGOUT")
+	end
 end
 
 _G.MrFish=addon

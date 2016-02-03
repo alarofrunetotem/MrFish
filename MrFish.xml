@@ -61,7 +61,7 @@
 			<OnLoad>
 				self:RegisterForDrag("LeftButton")
 				self:RegisterForClicks("AnyUp")
-				self:SetWidth(160)
+				self:SetWidth(200)
 				self.waitAndAnimOut:Stop();
 			</OnLoad>
 			<OnDragStart>
@@ -109,7 +109,7 @@
 		<Frames>
 			<Button parentArray="baits" inherits="MrFishBaitButton" visible="true">
 				<Anchors>
-					<Anchor point="BOTTOMLEFT" x="0" y="0" />
+					<Anchor point="BOTTOMLEFT" x="5" y="0" />
 				</Anchors>
 			</Button>
 		</Frames>
