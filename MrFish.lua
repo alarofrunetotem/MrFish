@@ -345,7 +345,10 @@ function addon:FillBait()
 			self:SetIcon(bait)
 			bait:Show()
 		end
-
+	end
+	if n==0 then
+		baits:Hide()
+		return
 	end
 	for i=n+1,#baits.baits do
 		baits.baits[i]:Hide()

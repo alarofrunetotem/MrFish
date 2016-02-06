@@ -84,7 +84,7 @@
 	</Button>
 	<Frame name="MrFishBaitFrame" enableMouse="true" movable="true" clampedToScreen="true" parent="UIParent" hidden="true">
 		<Anchors>
-			<Anchor point="CENTER" x="0" y="-300"/>
+			<Anchor point="CENTER" x="-400" y="0"/>
 		</Anchors>
 		<Layers>
 			<Layer level="OVERLAY">
@@ -124,9 +124,12 @@
 	</Frame>
 	<Button name="MrFishStopButton" movable="true" enableMouse="true" parent="UIParent" clampedToScreen="true" inherits="UIPanelButtonTemplate,SecureActionButtonTemplate" hidden="true">
 		<Anchors>
-			<Anchor point="CENTER" x="0" y="-300"/>
+			<Anchor point="BOTTOM" relativeTo="CastingBarFrame" relativePoint="TOP" x="0" y="10"/>
 		</Anchors>
 		<Scripts>
+			<OnLoad>
+				self:RegisterForDrag("LeftButton")
+			</OnLoad>
 			<OnDragStart>
 				self:StartMoving()
 			</OnDragStart>

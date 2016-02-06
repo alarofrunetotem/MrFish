@@ -1,5 +1,8 @@
 *Fish Commander*
 
+* *2.0.1*
+
+
 * *2.0*
 Feature: Improved graphic appearance
 Feature: Added buf toolbar
