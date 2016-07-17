@@ -1,8 +1,6 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
 local me,ns=...
 --@debug@
---Postal_BlackBookButton
--- SendMailNameEditBox
 LoadAddOn("Blizzard_DebugTools")
 LoadAddOn("LibDebug")
 if LibDebug then LibDebug() end
@@ -43,6 +41,7 @@ local fishingSkill=0
 local fishingCap=0
 local fishingBonus=0
 local weapons
+local warned
 local function fade(delay)
 		start.waitAndAnimOut:Stop();
 		start.waitAndAnimOut.animOut:SetStartDelay(delay or 0.1);
@@ -220,13 +219,15 @@ function addon:Init()
 		self:UnregisterEvent("SKILL_LINES_CHANGED")
 		FishingPole=self:GetFishingPole()
 	else
-		self:Print(L["You should learn to fish, before fishing!"])
+		if not warned then
+			self:Print(L["You should learn to fish, if you installed me :)"])
+			warned=true
+		end
 		self:NoFish()
 	end
 end
 
 function addon:ShowAtMouse(frame)
-	print("mouse")
 	local scale=UIParent:GetScale()
 	local x,y=GetCursorPosition()
 	frame:ClearAllPoints()
@@ -235,7 +236,6 @@ function addon:ShowAtMouse(frame)
 	fade(2)
 end
 function addon:ShowAtCenter(frame,offset)
-	print("center")
 	offset=offset or 10
 	frame:ClearAllPoints()
 	frame:SetPoint("CENTER",UIParent,"CENTER",offset,0)
