@@ -76,9 +76,6 @@ function addon:FISH_STARTED()
 end
 function addon:COMBAT_LOG_EVENT_UNFILTERED(_,timestamp,event,hidecaster,sguid,sname,sflags,sraidflags,dguid,dname,dflags,dRaidflags,spellid,spellname,stack,kind,...)
 	if (bit.band(COMBATLOG_OBJECT_AFFILIATION_MINE,dflags)==1) then
---@debug@
-		print(event,sname,dname,spellid,'(',spellname,')',stack,kind,...)
---@end-debug@
 		if (start and not InCombatLockdown()) then
 			if (type(spellname)=="string" and spellname:find(Fishing)) then
 				if (kind=="BUFF") then
@@ -197,7 +194,11 @@ function addon:Discovery()
 --@debug@
 		print("Init")
 --@end-debug@
-		self:Init()
+		if (InCombatLockdown()) then
+			self:ScheduleLeaveCombatAction('Init')
+		else
+			self:ScheduleTimer('Init',1)
+		end
 	end
 end
 
