@@ -15,6 +15,9 @@ Starts fishing
 Stops fishing
 
 ]])
+self:RelNotes(1,2,0,[[
+Feature: attempt to be smarter.Tries to keep fish button visible while you add a lure or move to a better spot
+]])
 self:RelNotes(1,1,1,[[
 Fix:removed an old debug message
 ]])
