@@ -76,9 +76,9 @@
 				MrFish:OnEnter(self);
 			</OnEnter>
 			<OnLeave>
-				self.waitAndAnimOut.animOut:SetStartDelay(0.1);
-				self.waitAndAnimOut:Play()
 				GameTooltip:Hide();
+				self.waitAndAnimOut.animOut:SetStartDelay(0.1);
+				MrFish:OnLeave(self);
 			</OnLeave>
 		</Scripts>
 	</Button>

@@ -47,6 +47,9 @@ local function fade(delay)
 		start.waitAndAnimOut.animOut:SetStartDelay(delay or 0.1);
 		start.waitAndAnimOut:Play()
 end
+local function unfade()
+		start.waitAndAnimOut:Stop();
+end
 function addon:CHAT_MSG_SKILL(event,msg)
 	local skill=msg:match(pattern)
 	if skill then
@@ -88,6 +91,10 @@ function addon:COMBAT_LOG_EVENT_UNFILTERED(_,timestamp,event,hidecaster,sguid,sn
 			end
 		end
 	end
+end
+function addon:ZONE_CHANGED_NEW_AREA()
+	fade()
+	self:Hooks()
 end
 function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
 --@debug@
@@ -217,6 +224,7 @@ function addon:Init()
 		self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		self:RegisterEvent("CHAT_MSG_SKILL")
+		self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 		self:UnregisterEvent("SKILL_LINES_CHANGED")
 		FishingPole=self:GetFishingPole()
 	else
@@ -259,6 +267,7 @@ function addon:StartFishFrame(atCursor)
 		local _
 		fishingSkill,fishingCap,_,_,_,fishingBonus=select(3,GetProfessionInfo(fishingSkillID))
 	end
+	self:Hooks()
 	start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
 end
 function addon:StopFishFrame(show)
@@ -270,7 +279,6 @@ function addon:StopFishFrame(show)
 	else
 			body='/stopcasting'
 	end
-	body="/dump 'macro partita'\n" .. body
 	stop:SetAttribute("type","macro");
 	stop:SetAttribute("macrotext",body)
 	if (show) then
@@ -283,6 +291,11 @@ function addon:OnEnter(this)
 --@debug@
 	print(this)
 --@end-debug@
+end
+function addon:OnLeave(this)
+	if self:IsFishing() then
+		this.waitAndAnimOut:Play()
+	end
 end
 function addon:OnAnimationStop(this,requested)
 	if (not self:IsFishing()) then
@@ -478,6 +491,36 @@ function addon:OnInitialized()
 	end
 	return true
 end
+local hooksList={
+	MoveBackwardStart='StartMoving',
+	MoveForwardStart='StartMoving',
+	JumpOrAscendStart='StartMoving',
+	MoveBackwardStop='StopMoving',
+	MoveForwardStop='StopMoving'
+}
+function addon:Hooks(on)
+	for hook,method in pairs(hooksList) do
+		if on then
+			if not self:IsHooke(hook) then
+				self:SecureHook(hook,method)
+			end
+		else
+			self:Unhook(hook)
+		end
+	end
+end
+local movestarted=0
+function addon:StartMoving()
+	movestarted=GetTime()
+	fade(3)
+end
+function addon:StopMoving()
+	if GetTime()-movestarted <3 then
+		unfade()
+	end
+	movestarted=GetTime()
+end
+
 function addon:ApplyMINIMAP(value)
 	if value then
 		icon:Hide(me)
@@ -499,9 +542,11 @@ function addon:Fish(atCursor)
 		self:EquipFishingPole()
 	end
 	self:StartFishFrame(atCursor)
+	self:Hooks(true)
 	ldb:Update()
 end
 function addon:NoFish()
+	self:Hooks()
 	self:OnLeaveCombat("RestoreWeapons")
 	start:Hide()
 	stop:Hide()
