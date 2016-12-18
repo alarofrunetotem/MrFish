@@ -43,12 +43,12 @@ local fishingBonus=0
 local weapons
 local warned
 local function fade(delay)
-		start.waitAndAnimOut:Stop();
-		start.waitAndAnimOut.animOut:SetStartDelay(delay or 0.1);
-		start.waitAndAnimOut:Play()
+	start.waitAndAnimOut:Stop();
+	start.waitAndAnimOut.animOut:SetStartDelay(delay or 0.1);
+	start.waitAndAnimOut:Play()
 end
 local function unfade()
-		start.waitAndAnimOut:Stop();
+	start.waitAndAnimOut:Stop();
 end
 function addon:CHAT_MSG_SKILL(event,msg)
 	local skill=msg:match(pattern)
@@ -201,11 +201,7 @@ function addon:Discovery()
 --@debug@
 		print("Init")
 --@end-debug@
-		if (InCombatLockdown()) then
-			self:ScheduleLeaveCombatAction('Init')
-		else
-			self:ScheduleTimer('Init',1)
-		end
+		self:ScheduleLeaveCombatAction('Init')
 	end
 end
 
@@ -215,7 +211,6 @@ function addon:Init()
 	if (fishing) then
 		CanFish = true
 	end
-	self:SetupFrames()
 	if (CanFish) then
 		fishingName,fishingTexture,fishingSkill,fishingCap=GetProfessionInfo(fishing)
 		self:SetupFrames()
@@ -501,7 +496,7 @@ local hooksList={
 function addon:Hooks(on)
 	for hook,method in pairs(hooksList) do
 		if on then
-			if not self:IsHooke(hook) then
+			if not self:IsHooked(hook) then
 				self:SecureHook(hook,method)
 			end
 		else
@@ -512,13 +507,13 @@ end
 local movestarted=0
 function addon:StartMoving()
 	movestarted=GetTime()
+	print("Mi muovo alle",movestarted)
 	fade(3)
 end
 function addon:StopMoving()
 	if GetTime()-movestarted <3 then
 		unfade()
 	end
-	movestarted=GetTime()
 end
 
 function addon:ApplyMINIMAP(value)

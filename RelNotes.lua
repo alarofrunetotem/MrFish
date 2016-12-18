@@ -15,6 +15,10 @@ Starts fishing
 Stops fishing
 
 ]])
+self:RelNotes(1,2,2,[[
+Fix: lua error when starting
+Feature: you can reequip weapons and exit fishing mode just walking for more than 3 seconds
+]])
 self:RelNotes(1,2,1,[[
 Feature: attempt to be smarter.Tries to keep fish button visible while you add a lure or move to a better spot
 ]])

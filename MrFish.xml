@@ -53,7 +53,7 @@
 			<OnLeave function="GameTooltip_Hide"/>
 		</Scripts>
 	</Button>
-	<Button name="MrFishButton" parent="UIParent"  movable="true" enableMouse="true" clampedToScreen="true" inherits="MoneyWonALertFrameTemplate,SecureActionbuttonTemplate">
+	<Button name="MrFishButton" parent="UIParent"  movable="true" enableMouse="true" clampedToScreen="true" inherits="MoneyWonAlertFrameTemplate,SecureActionbuttonTemplate">
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="0"/>
 		</Anchors>
