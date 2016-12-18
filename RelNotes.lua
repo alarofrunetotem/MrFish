@@ -15,7 +15,8 @@ Starts fishing
 Stops fishing
 
 ]])
-self:RelNotes(1,2,2,[[
+self:RelNotes(2,2,2,[[
+Fix: Version number is now the expected one
 Fix: lua error when starting
 Feature: you can reequip weapons and exit fishing mode just walking for more than 3 seconds
 ]])
