@@ -94,7 +94,6 @@ function addon:COMBAT_LOG_EVENT_UNFILTERED(_,timestamp,event,hidecaster,sguid,sn
 end
 function addon:ZONE_CHANGED_NEW_AREA()
 	fade()
-	self:Hooks()
 end
 function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
 --@debug@
@@ -262,7 +261,6 @@ function addon:StartFishFrame(atCursor)
 		local _
 		fishingSkill,fishingCap,_,_,_,fishingBonus=select(3,GetProfessionInfo(fishingSkillID))
 	end
-	self:Hooks()
 	start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
 end
 function addon:StopFishFrame(show)
@@ -494,6 +492,9 @@ local hooksList={
 	MoveForwardStop='StopMoving'
 }
 function addon:Hooks(on)
+--@debug@
+	print(on and "Hooking" or "Unhooking")
+--@end-debug@
 	for hook,method in pairs(hooksList) do
 		if on then
 			if not self:IsHooked(hook) then
@@ -507,10 +508,15 @@ end
 local movestarted=0
 function addon:StartMoving()
 	movestarted=GetTime()
+	--@debug@
 	print("Mi muovo alle",movestarted)
+	--@end-debug@
 	fade(3)
 end
 function addon:StopMoving()
+	--@debug@
+	print("Mi fermo alle",movestarted)
+	--@end-debug@
 	if GetTime()-movestarted <3 then
 		unfade()
 	end
@@ -537,12 +543,13 @@ function addon:Fish(atCursor)
 		self:EquipFishingPole()
 	end
 	self:StartFishFrame(atCursor)
-	self:Hooks(true)
 	ldb:Update()
 end
 function addon:NoFish()
-	self:Hooks()
-	self:OnLeaveCombat("RestoreWeapons")
+	self:OnLeaveCombat("ActualNoFish")
+end
+function addon:ActualNoFish()
+	self:RestoreWeapons()
 	start:Hide()
 	stop:Hide()
 	baits:Hide()

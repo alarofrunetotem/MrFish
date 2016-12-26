@@ -15,6 +15,10 @@ Starts fishing
 Stops fishing
 
 ]])
+self:RelNotes(2,3,0,[[
+Feature: fisihing button is now less invasive
+]])
+
 self:RelNotes(2,2,2,[[
 Fix: Version number is now the expected one
 Fix: lua error when starting
