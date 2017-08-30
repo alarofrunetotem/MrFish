@@ -9,7 +9,7 @@ if LibDebug then LibDebug() end
 local print=function() end
 local DevTools_Dump=function() end
 --@end-non-debug@]===]
-local addon --#MailCommander
+local addon --#MrFish
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
 if minor >=21 then
@@ -484,6 +484,8 @@ function addon:OnInitialized()
 	end
 	return true
 end
+-- PLAYER_STARTED_MOVING
+-- PLAYER_STOPPED_MOVING
 local hooksList={
 	MoveBackwardStart='StartMoving',
 	MoveForwardStart='StartMoving',
