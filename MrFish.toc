@@ -1,4 +1,4 @@
-## Interface: 70300
+## Interface: 80000
 ## Title: MrFish
 ## Notes: Quick line cast and equipment switch
 ## Author: Alar of Daggerspine

@@ -17,6 +17,7 @@ if minor >=21 then
 else
 	addon=LibStub("LibInit"):NewAddon(me,"AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceBucket-3.0")
 end
+local COMBATLOG_OBJECT_AFFILIATION_MINE   = COMBATLOG_OBJECT_AFFILIATION_MINE
 local pairs=pairs
 local wipe=wipe
 local C=addon:GetColorTable()
@@ -77,8 +78,9 @@ end
 function addon:FISH_STARTED()
 	stop:Show()
 end
-function addon:COMBAT_LOG_EVENT_UNFILTERED(_,timestamp,event,hidecaster,sguid,sname,sflags,sraidflags,dguid,dname,dflags,dRaidflags,spellid,spellname,stack,kind,...)
-	if (bit.band(COMBATLOG_OBJECT_AFFILIATION_MINE,dflags)==1) then
+function addon:COMBAT_LOG_EVENT_UNFILTERED(...)
+  local timestamp,event,hidecaster,sguid,sname,sflags,sraidflags,dguid,dname,dflags,dRaidflags,spellid,spellname,stack,kind=CombatLogGetCurrentEventInfo()
+	if (dflags and bit.band(COMBATLOG_OBJECT_AFFILIATION_MINE,dflags)==1) then
 		if (start and not InCombatLockdown()) then
 			if (type(spellname)=="string" and spellname:find(Fishing)) then
 				if (kind=="BUFF") then
