@@ -269,9 +269,9 @@ end
 function addon:StopFishFrame(show)
 	local body,main,off='/stopcasting',weapons[INVSLOT_MAINHAND].link,weapons[INVSLOT_OFFHAND].link
 	if (main and off) then
-		body=format("/stopcasting\n/equipslot 16 %s\n/equipslot 17 %s",main,off)
+		body=format("/stopcasting\n/equipslot %d %s\n/equipslot %d %s",INVSLOT_MAINHAND,main,INVSLOT_OFFHAND,off)
 	elseif (main or off) then
-		body=format("/stopcasting\n/equipslot 16 %s",main or off)
+		body=format("/stopcasting\n/equipslot %d %s",INVSLOT_MAINHAND,main or off)
 	else
 		body='/stopcasting'
 	end
