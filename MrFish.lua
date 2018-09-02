@@ -149,7 +149,7 @@ function addon:GetFishingPole()
 		end
 	end
 	if (maxname) then
-		self:Print(format(L["Best Fishing Pole: %s"],maxname))
+		self:Print(format(L["Found %s"],maxname))
 	end
 	return maxname
 end
