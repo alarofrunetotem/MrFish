@@ -547,7 +547,7 @@ function addon:Fish(atCursor)
 	if (not self:IsFishing()) then
 		self:EquipFishingPole()
 	end
-	self:StartFishFrame(atCursor)
+	self:ScheduleTimer("StartFishFrame",0.5,atCursor)
 	ldb:Update()
 end
 function addon:NoFish()
