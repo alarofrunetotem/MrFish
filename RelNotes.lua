@@ -15,6 +15,17 @@ Starts fishing
 Stops fishing
 
 ]])
+self:RelNotes(2,4,0,[[
+Thanks to fuba
+Fix: Fixed Weapon Swap when entering Combat in Fishing
+Fix: Fixed wrong Weapon/Offand Equiped after stop Fishing
+Fix: MrFish will now be disabled when entering Combat
+You need enable it manually after Comabt again
+Fix: Changed to use ItemLink instead of ItemID to Store and Restore Weapons because of Enchants and Sockets
+Example: This will prevent to equip the Wrong Item with the same Name but different Itemlevel, Enchant or Socket(s)
+Fix: Added a Delay of 0.5 Seconds before the Fishing Button appears
+  So the Bonus will now shown correctly after equip a Fishing Pole
+]])
 self:RelNotes(2,3,0,[[
 Feature: fisihing button is now less invasive
 ]])
