@@ -73,7 +73,7 @@ function addon:PLAYER_REGEN_DISABLED()
 end
 function addon:FISH_ENDED()
 	self:FillBait()
-	self:StartFishFrame(true)
+	self:ScheduleTimer("StartFishFrame",0.5,true)
 end
 function addon:FISH_STARTED()
 	stop:Show()
@@ -156,32 +156,33 @@ end
 function addon:Info(...)
 	for k,v in pairs(weapons) do
 	if (v) then
-		self:Print(k,"=",v.name)
+		self:Print(k,"=",v.link)
 	end
 	end
 	if (FishingPole) then
 		self:Print(format(L["Fishing pole is %s"],GetItemInfo(FishingPole)))
 	end
 end
-local function pushWeapon(tb,...)
-	if (select(1,...)) then
-		if (select(7,...) == FishingPolesCategory) then return end
-		tb.name=select(1,...)
-		tb.skin=select(10,...)
+local function pushWeapon(tb,link,...)
+	if link then
+		if (select(7, GetItemInfo(link)) == FishingPolesCategory) then return end
+		tb.link = link
 	end
 end
 function addon:StoreWeapons()
 	--@debug@
 	print("Storing weapons")
 	--@end-debug@
-	local id=GetInventoryItemID("player",INVSLOT_MAINHAND)
-	if (id) then pushWeapon(weapons[INVSLOT_MAINHAND],GetItemInfo(id)) end
-	id=GetInventoryItemID("player",INVSLOT_OFFHAND)
-	if (id) then pushWeapon(weapons[INVSLOT_OFFHAND],GetItemInfo(id)) end
+	weapons[INVSLOT_MAINHAND]={}
+	weapons[INVSLOT_OFFHAND]={}
+	local link_mh=GetInventoryItemLink("player",INVSLOT_MAINHAND)
+	if link_mh then pushWeapon(weapons[INVSLOT_MAINHAND],link_mh) end
+	local link_oh=GetInventoryItemLink("player",INVSLOT_OFFHAND)
+	if link_oh then pushWeapon(weapons[INVSLOT_OFFHAND],link_oh) end
 end
 function addon:RestoreWeapons()
-	if (weapons[INVSLOT_MAINHAND].name) then EquipItemByName(weapons[INVSLOT_MAINHAND].name) end
-	if (weapons[INVSLOT_OFFHAND].name) then EquipItemByName(weapons[INVSLOT_OFFHAND].name) end
+	if (weapons[INVSLOT_MAINHAND].link) then EquipItemByName(weapons[INVSLOT_MAINHAND].link) end
+	if (weapons[INVSLOT_OFFHAND].link) then EquipItemByName(weapons[INVSLOT_OFFHAND].link) end
 end
 
 function addon:SKILL_LINES_CHANGED()
@@ -266,13 +267,13 @@ function addon:StartFishFrame(atCursor)
 	start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
 end
 function addon:StopFishFrame(show)
-	local body,main,off='/stopcasting',weapons[INVSLOT_MAINHAND].name,weapons[INVSLOT_OFFHAND].name
+	local body,main,off='/stopcasting',weapons[INVSLOT_MAINHAND].link,weapons[INVSLOT_OFFHAND].link
 	if (main and off) then
-			body=format("/stopcasting\n/equip %s\n/equip %s",main,off)
+		body=format("/stopcasting\n/equipslot %d %s\n/equipslot %d %s",INVSLOT_MAINHAND,main,INVSLOT_OFFHAND,off)
 	elseif (main or off) then
-			body=format("/stopcasting\n/equip %s",main or off)
+		body=format("/stopcasting\n/equipslot %d %s",INVSLOT_MAINHAND,main or off)
 	else
-			body='/stopcasting'
+		body='/stopcasting'
 	end
 	stop:SetAttribute("type","macro");
 	stop:SetAttribute("macrotext",body)
@@ -546,7 +547,7 @@ function addon:Fish(atCursor)
 	if (not self:IsFishing()) then
 		self:EquipFishingPole()
 	end
-	self:StartFishFrame(atCursor)
+	self:ScheduleTimer("StartFishFrame",0.5,atCursor)
 	ldb:Update()
 end
 function addon:NoFish()
