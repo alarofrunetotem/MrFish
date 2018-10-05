@@ -68,8 +68,7 @@ function addon:PLAYER_REGEN_ENABLED()
 	end
 end
 function addon:PLAYER_REGEN_DISABLED()
-	local id=GetInventoryItemID("player",INVSLOT_MAINHAND)
-	self:RestoreWeapons()
+	self:ActualNoFish()
 end
 function addon:FISH_ENDED()
 	self:FillBait()
@@ -275,6 +274,7 @@ function addon:StopFishFrame(show)
 	else
 		body='/stopcasting'
 	end
+	local body='/stopcasting'
 	stop:SetAttribute("type","macro");
 	stop:SetAttribute("macrotext",body)
 	if (show) then
@@ -394,7 +394,7 @@ function addon:SetupFrames()
 	stop:SetText(BINDING_NAME_STOPCASTING .. ": " .. Fishing )
 	stop:SetWidth(stop:GetFontString():GetStringWidth()+20)
 	stop:SetScript("PostClick",function(this)
-		addon:NoFish()
+		self:ScheduleTimer("NoFish",0.5)
 	end
 	)
 	self:FillBait()
@@ -419,7 +419,7 @@ function addon:EquipFishingPole()
 	end
 end
 function addon:IsFishing()
-	return "Interface\\Icons\\Trade_Fishing"== select(4,UnitChannelInfo("player"))
+	return (GetSpellInfo(FishingId) == UnitChannelInfo("player"))
 end
 
 ------------------------------------
