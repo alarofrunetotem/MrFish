@@ -15,6 +15,9 @@ Starts fishing
 Stops fishing
 
 ]])
+self:RelNotes(2,4,3,[[
+Fix: now uses new itembutton instead of itembuttontemplate
+]])
 self:RelNotes(2,4,0,[[
 Thanks to fuba
 Fix: Fixed Weapon Swap when entering Combat in Fishing
