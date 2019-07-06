@@ -15,6 +15,9 @@ Starts fishing
 Stops fishing
 
 ]])
+self:RelNotes(2,4,4,[[
+Feature: Updated for 8.2
+]])
 self:RelNotes(2,4,3,[[
 Fix: now uses new itembutton instead of itembuttontemplate
 ]])
