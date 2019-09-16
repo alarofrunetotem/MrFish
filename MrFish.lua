@@ -1,14 +1,14 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
 local me,ns=...
---@debug@
+--[===[@debug@
 LoadAddOn("Blizzard_DebugTools")
 LoadAddOn("LibDebug")
 if LibDebug then LibDebug() end
---@end-debug@
---[===[@non-debug@
+--@end-debug@]===]
+--@non-debug@
 local print=function() end
 local DevTools_Dump=function() end
---@end-non-debug@]===]
+--@end-non-debug@
 local addon --#MrFish
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
@@ -43,6 +43,85 @@ local fishingCap=0
 local fishingBonus=0
 local weapons
 local warned
+
+-- Changes for Classic Wow
+local GetProfessions = _G.GetProfessions
+local UnitChannelInfo = _G.UnitChannelInfo
+local ChannelFishing = false
+if select(4,GetBuildInfo()) < 20000 then
+	FishingId=7732
+	UnitChannelInfo = _G.ChannelInfo
+	
+	-- Main Profession localisations
+	local sAlchemy = GetSpellInfo(2259)
+	local sBlacksmithing = GetSpellInfo(2018)
+	local sEnchanting = GetSpellInfo(7411)
+	local sEngineering = GetSpellInfo(4036)
+	local sHerbalism = GetSpellInfo(13614)
+	local sLeatherworking = GetSpellInfo(2108)
+	local sLockpicking = GetSpellInfo(1809)
+	local sMining = GetSpellInfo(2575)
+	local sSkinning = GetSpellInfo(8613)
+	local sSmelting = GetSpellInfo(2656)
+	local sTailoring = GetSpellInfo(3908)
+	local sJewelcrafting = GetSpellInfo(25229)
+
+	-- Second Profession localisations
+	local sCooking = GetSpellInfo(2550)
+	local sFirstAid = GetSpellInfo(3273)
+	local sFishing = GetSpellInfo(7620)
+	local sPoisons = GetSpellInfo(2842)
+
+	-- Profession Tracking localisations
+	local sFindHerbs = GetSpellInfo(2383)
+	local sFindMinerals = GetSpellInfo(2580)
+
+	mainprof1 = {sAlchemy, sBlacksmithing, sEnchanting, sEngineering, sJewelcrafting, sLeatherworking, sTailoring, sMining}
+	mainprof2 = {sHerbalism, sSkinning}
+	secprof = {sCooking, sFirstAid, sFishing, sPoisons}
+
+	local function GetProfessionsClassic()
+		local prof1, prof2, poisons, fishing, cooking, firstAid
+		for skillIndex = 1, GetNumSkillLines() do
+			skillName = select(1, GetSkillLineInfo(skillIndex))
+			isHeader = select(2, GetSkillLineInfo(skillIndex))
+			if isHeader == nil then
+				for key,value in pairs(mainprof1) do
+					if (prof1 == nil) and (value == skillName) then
+						prof1 = skillIndex
+					elseif (prof1 ~= nil) and (value == skillName) then
+						prof2 = skillIndex
+					end
+				end
+				if skillName == sCooking then
+					cooking = skillIndex
+				elseif skillName == sFirstAid then
+					firstAid = skillIndex
+				elseif skillName == sFishing then
+					fishing = skillIndex
+				elseif skillName == sPoisons then
+					poisons = skillIndex
+				end
+			end
+		end
+		for skillIndex = 1, GetNumSkillLines() do
+			skillName = select(1, GetSkillLineInfo(skillIndex))
+			isHeader = select(2, GetSkillLineInfo(skillIndex))
+			if isHeader == nil then
+				for key,value in pairs(mainprof2) do
+					if (prof1 == nil) and (value == skillName) then
+						prof1 = skillIndex
+					elseif (prof1 ~= nil) and (value == skillName) then
+						prof2 = skillIndex
+					end
+				end
+			end
+		end
+		return prof1, prof2, poisons, fishing, cooking, firstAid
+	end	
+	GetProfessions = GetProfessionsClassic
+end
+
 local function fade(delay)
 	start.waitAndAnimOut:Stop();
 	start.waitAndAnimOut.animOut:SetStartDelay(delay or 0.1);
@@ -57,7 +136,11 @@ function addon:CHAT_MSG_SKILL(event,msg)
 		fishingSkill=skill
 		if (fishingSkill and fishingSkillID) then
 			local _
-			fishingCap,_,_,_,fishingBonus=select(4,GetProfessionInfo(fishingSkillID))
+			if select(4,GetBuildInfo()) < 20000 then
+				fishingCap, fishingBonus = select(6,GetSkillLineInfo(fishingSkillID))
+			else
+				fishingCap,_,_,_,fishingBonus=select(4,GetProfessionInfo(fishingSkillID))
+			end
 			start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
 		end
 	end
@@ -77,6 +160,35 @@ end
 function addon:FISH_STARTED()
 	stop:Show()
 end
+
+
+-- Event for check Fishing in Classic Wow, becasue in Classic Wow "Fishing" is NO Buff, but should also work on BfA!
+if select(4,GetBuildInfo()) < 20000 then
+
+	function addon:UNIT_SPELLCAST_CHANNEL_START(event, unitTarget, castGUID, spellID)
+		if (ChannelFishing) then return end
+		local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = ChannelInfo();		
+		if spellID == FishingId then
+			ChannelFishing = true
+			--DEFAULT_CHAT_FRAME:AddMessage("Fishing started")
+			--self:FISH_STARTED()
+			stop:Show()
+			start:Hide()
+		end
+	end
+
+	function addon:UNIT_SPELLCAST_CHANNEL_STOP(event, unitTarget, castGUID, spellID)
+		if (not ChannelFishing) then return end
+		ChannelFishing = false
+		--DEFAULT_CHAT_FRAME:AddMessage("Fishing Stopped")
+		--self:FISH_ENDED()
+		self:FillBait()
+		self:StartFishFrame(true)
+		start:Show()
+	end
+	
+end
+
 function addon:COMBAT_LOG_EVENT_UNFILTERED(...)
   local timestamp,event,hidecaster,sguid,sname,sflags,sraidflags,dguid,dname,dflags,dRaidflags,spellid,spellname,stack,kind=CombatLogGetCurrentEventInfo()
 	if (dflags and bit.band(COMBATLOG_OBJECT_AFFILIATION_MINE,dflags)==1) then
@@ -97,9 +209,9 @@ function addon:ZONE_CHANGED_NEW_AREA()
 	fade()
 end
 function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
---@debug@
+--[===[@debug@
 	print(event,slot,hasItem)
---@end-debug@
+--@end-debug@]===]
 	if (slot==INVSLOT_MAINHAND or slot==INVSLOT_OFFHAND) then
 		local ID=GetInventoryItemID("player",slot)
 		if (ID) then
@@ -169,9 +281,9 @@ local function pushWeapon(tb,link,...)
 	end
 end
 function addon:StoreWeapons()
-	--@debug@
+	--[===[@debug@
 	print("Storing weapons")
-	--@end-debug@
+	--@end-debug@]===]
 	weapons[INVSLOT_MAINHAND]={}
 	weapons[INVSLOT_OFFHAND]={}
 	local link_mh=GetInventoryItemLink("player",INVSLOT_MAINHAND)
@@ -194,14 +306,14 @@ function addon:Discovery()
 	FishingPolesCategory=select(7,GetItemInfo(FishingPoleId))
 	Fishing,_,FishingIcon=GetSpellInfo(FishingId)
 	if (not FishingPolesCategory or not Fishing) then
---@debug@
+--[===[@debug@
 		print("Rescheduled")
---@end-debug@
+--@end-debug@]===]
 		self:ScheduleTimer("Discovery",0.5)
 	else
---@debug@
+--[===[@debug@
 		print("Init")
---@end-debug@
+--@end-debug@]===]
 		self:ScheduleLeaveCombatAction('Init')
 	end
 end
@@ -213,8 +325,21 @@ function addon:Init()
 		CanFish = true
 	end
 	if (CanFish) then
-		fishingName,fishingTexture,fishingSkill,fishingCap=GetProfessionInfo(fishing)
+		if select(4,GetBuildInfo()) < 20000 then
+			fishingName, _, _, fishingSkill, _, _, fishingCap = GetSkillLineInfo(fishing)
+			fishingTexture = GetSpellTexture(fishingName)
+		else
+			fishingName,fishingTexture,fishingSkill,fishingCap=GetProfessionInfo(fishing)
+		end
+		
 		self:SetupFrames()
+				
+		-- RegisterEvent for Classic
+		if select(4,GetBuildInfo()) < 20000 then
+			self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
+			self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
+		end
+		
 		self:RegisterEvent("PLAYER_REGEN_DISABLED")
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 		self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
@@ -261,7 +386,11 @@ function addon:StartFishFrame(atCursor)
 	fishingSkillID=select(4,GetProfessions())
 	if (fishingSkillID) then
 		local _
-		fishingSkill,fishingCap,_,_,_,fishingBonus=select(3,GetProfessionInfo(fishingSkillID))
+		if select(4,GetBuildInfo()) < 20000 then
+			fishingSkill,_,fishingBonus,fishingCap = select(4,GetSkillLineInfo(fishingSkillID))
+		else
+			fishingSkill,fishingCap,_,_,_,fishingBonus=select(3,GetProfessionInfo(fishingSkillID))
+		end		
 	end
 	start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
 end
@@ -284,9 +413,9 @@ function addon:StopFishFrame(show)
 	end
 end
 function addon:OnEnter(this)
---@debug@
+--[===[@debug@
 	print(this)
---@end-debug@
+--@end-debug@]===]
 end
 function addon:OnLeave(this)
 	if self:IsFishing() then
@@ -301,9 +430,9 @@ end
 local waitingframes={}
 function addon:GET_ITEM_INFO_RECEIVED(event,itemID)
 	local f=waitingframes[itemID]
-	--@debug@
+	--[===[@debug@
 	print(event,itemID,f)
-	--@end-debug@
+	--@end-debug@]===]
 	if f then
 		waitingframes[itemID]=nil
 		self:SetIcon(f)
@@ -312,9 +441,9 @@ function addon:GET_ITEM_INFO_RECEIVED(event,itemID)
 		if v then return end
 	end
 	wipe(waitingframes)
-	--@debug@
+	--[===[@debug@
 	print("Removed GET ITEM hook")
-	--@end-debug@
+	--@end-debug@]===]
 	self:UnregisterEvent("GET_ITEM_INFO_RECEIVED")
 end
 function addon:SetIcon(frame)
@@ -322,9 +451,9 @@ function addon:SetIcon(frame)
 	if itemTexture then
 		frame.Icon:SetTexture(itemTexture);
 	else
-		--@debug@
+		--[===[@debug@
 		print("Unable to retrieve info for ",frame.itemID)
-		--@end-debug@
+		--@end-debug@]===]
 	end
 end
 function addon:FillBait()
@@ -349,8 +478,10 @@ function addon:FillBait()
 			bait.Quantity:Show()
 			bait:EnableMouse(true)
 			bait:RegisterForClicks("LeftButtonDown","RightButtonDown")
-			bait:SetAttribute("type*","item")
-			bait:SetAttribute("item",select(2,GetItemInfo(itemID)))
+			bait:SetAttribute("type1","macro")
+			bait:SetAttribute("macrotext","/use item:"..itemID.."\n/use 16")
+			bait:SetAttribute("type2","macro")
+			bait:SetAttribute("macrotext2","/use item:"..itemID.."\n/use 16")
 			bait:SetScript("PostClick",function() self:ScheduleTimer("FillBait",5) end)
 			self:SetIcon(bait)
 			bait:Show()
@@ -389,7 +520,7 @@ function addon:SetupFrames()
 	start:SetAttribute("shift-macrotext1","/stopcasting")
 	start.waitAndAnimOut:SetScript("OnFinished",function(this,requested) addon:OnAnimationStop(this,requested) end)
 	start:SetScript("PostClick",function(this)
-		fade(2)
+		--fade(2)
 	end )
 	stop:SetText(BINDING_NAME_STOPCASTING .. ": " .. Fishing )
 	stop:SetWidth(stop:GetFontString():GetStringWidth()+20)
@@ -497,9 +628,9 @@ local hooksList={
 	MoveForwardStop='StopMoving'
 }
 function addon:Hooks(on)
---@debug@
+--[===[@debug@
 	print(on and "Hooking" or "Unhooking")
---@end-debug@
+--@end-debug@]===]
 	for hook,method in pairs(hooksList) do
 		if on then
 			if not self:IsHooked(hook) then
@@ -513,15 +644,15 @@ end
 local movestarted=0
 function addon:StartMoving()
 	movestarted=GetTime()
-	--@debug@
+	--[===[@debug@
 	print("Mi muovo alle",movestarted)
-	--@end-debug@
+	--@end-debug@]===]
 	fade(3)
 end
 function addon:StopMoving()
-	--@debug@
+	--[===[@debug@
 	print("Mi fermo alle",movestarted)
-	--@end-debug@
+	--@end-debug@]===]
 	if GetTime()-movestarted <3 then
 		unfade()
 	end
@@ -562,4 +693,3 @@ function addon:ActualNoFish()
 	ldb:Update()
 end
 _G.MrFish=addon
-
