@@ -43,13 +43,15 @@ local fishingCap=0
 local fishingBonus=0
 local weapons
 local warned
+local FadeButton = false
 
 -- Changes for Classic Wow
 local GetProfessions = _G.GetProfessions
 local UnitChannelInfo = _G.UnitChannelInfo
 local ChannelFishing = false
+local ClassicFishingIDs = {7620, 7731, 7732, 18248}
 if select(4,GetBuildInfo()) < 20000 then
-	FishingId=7732
+	FishingId = 7732
 	UnitChannelInfo = _G.ChannelInfo
 	
 	-- Main Profession localisations
@@ -155,10 +157,18 @@ function addon:PLAYER_REGEN_DISABLED()
 end
 function addon:FISH_ENDED()
 	self:FillBait()
-	self:ScheduleTimer("StartFishFrame",0.5,true)
+	if FadeButton then
+		self:ScheduleTimer("StartFishFrame",0.5,true)
+	else
+		self:StartFishFrame(true)
+		start:Show()
+	end
 end
 function addon:FISH_STARTED()
 	stop:Show()
+	if not FadeButton then
+		start:Hide()
+	end
 end
 
 
@@ -167,24 +177,17 @@ if select(4,GetBuildInfo()) < 20000 then
 
 	function addon:UNIT_SPELLCAST_CHANNEL_START(event, unitTarget, castGUID, spellID)
 		if (ChannelFishing) then return end
-		local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = ChannelInfo();		
-		if spellID == FishingId then
+		local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = ChannelInfo();	
+		if tContains(ClassicFishingIDs, spellID) then
 			ChannelFishing = true
-			--DEFAULT_CHAT_FRAME:AddMessage("Fishing started")
-			--self:FISH_STARTED()
-			stop:Show()
-			start:Hide()
+			self:FISH_STARTED()
 		end
 	end
 
 	function addon:UNIT_SPELLCAST_CHANNEL_STOP(event, unitTarget, castGUID, spellID)
 		if (not ChannelFishing) then return end
 		ChannelFishing = false
-		--DEFAULT_CHAT_FRAME:AddMessage("Fishing Stopped")
-		--self:FISH_ENDED()
-		self:FillBait()
-		self:StartFishFrame(true)
-		start:Show()
+		self:FISH_ENDED()
 	end
 	
 end
@@ -568,11 +571,14 @@ local fakeLdb={
 	iconG=1,
 	iconB=1,
 }
+
 local LDB=LibStub:GetLibrary("LibDataBroker-1.1",true)
 local ldb= LDB:NewDataObject(me,fakeLdb) --#ldb
 local icon = LibStub("LibDBIcon-1.0",true)
 local KEY_BUTTON1=ns.LMB
 local KEY_BUTTON2=ns.RMB
+
+
 -- ldb extension
 local oldIsFishing
 function ldb:Update()
@@ -608,6 +614,7 @@ function addon:OnInitialized()
 	baits=MrFishBaitFrame
 	self:AddBoolean("MINIMAP",false,L["Hide minimap icon"],L["If you hide minimap icon, use /mac gui to access configuration and /mac requests to open requests panel"])
 	self:AddToggle("RESTORE",true,L["Restore weapons on logout"],L["Always attempts to restore weapon on logout"])
+	self:AddBoolean("FADE",false,L["Fade MrFish Button"],L["Fade MrFish Button or Hide it instantly when turned off"])
 	self:AddChatCmd("Fish","fish")
 	self:AddChatCmd("NoFish","nofish")
 	self:AddPrivateOpenCmd("info","Info")
@@ -673,6 +680,10 @@ function addon:ApplyRESTORE(value)
 		self:UnregisterEvent("PLAYER_LOGOUT")
 	end
 end
+function addon:ApplyFADE(value)
+	FadeButton = value
+end
+
 function addon:Fish(atCursor)
 	IsFishing=true
 	if (not self:IsFishing()) then
