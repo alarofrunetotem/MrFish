@@ -15,6 +15,9 @@ Starts fishing
 Stops fishing
 
 ]])
+self:RelNotes(2,4,5,[[
+Toc: 8.3.0
+]])
 self:RelNotes(2,4,4,[[
 Feature: Updated for 8.2
 ]])
