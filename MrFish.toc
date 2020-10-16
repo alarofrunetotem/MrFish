@@ -1,8 +1,8 @@
-## Interface: 80300
+## Interface: 90001
 ## Title: MrFish
 ## Notes: Quick line cast and equipment switch
 ## Author: Alar of Daggerspine
-## Version: @project-version@ 80300
+## Version: @project-version@ 90001
 ## X-Version: 1.1.2
 ## X-Revision: @project-abbreviated-hash@
 ## eMail: alar@aspide.it

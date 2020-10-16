@@ -20,11 +20,4 @@
 		<nature>org.eclipse.koneki.ldt.nature</nature>
 		<nature>org.eclipse.ldt.nature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>_pkgmeta</name>
-			<type>1</type>
-			<location>/home/giovanni/git/Wow/MrFish/.pkgmeta</location>
-		</link>
-	</linkedResources>
 </projectDescription>
