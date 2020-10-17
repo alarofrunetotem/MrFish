@@ -86,7 +86,7 @@
 			<OnHide>MrFish:Hooks(false)</OnHide>
 		</Scripts>
 	</Button>
-	<Frame name="MrFishBaitFrame" enableMouse="true" movable="true" clampedToScreen="true" parent="UIParent" hidden="true">
+	<Frame name="MrFishBaitFrame" enableMouse="true" movable="true" clampedToScreen="true" parent="UIParent" inherits="BackdropTemplate" hidden="true">
 		<Anchors>
 			<Anchor point="CENTER" x="-400" y="0"/>
 		</Anchors>

@@ -15,6 +15,12 @@ Starts fishing
 Stops fishing
 
 ]])
+self:RelNotes(2,4,6,[[
+Fix: Update for Shadowlands 9.x
+Feature: Option for "Fade" the Mr. Fish Button or simply disappear
+Feature: Skinned some Frames for ElvUI
+Developer: Code Style formated with "Eclipse LUA Formating" feature
+]])
 self:RelNotes(2,4,5,[[
 Toc: 8.3.0
 ]])
