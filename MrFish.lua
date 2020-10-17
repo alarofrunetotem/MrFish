@@ -1,16 +1,16 @@
 local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
 local me,ns=...
---[===[@debug@
+--@debug@
 
 LoadAddOn("Blizzard_DebugTools")
 LoadAddOn("LibDebug")
 if LibDebug then LibDebug() end
 
---@end-debug@]===]
---@non-debug@
+--@end-debug@
+--[===[@non-debug@
 local print=function() end
 local DevTools_Dump=function() end
---@end-non-debug@
+--@end-non-debug@]===]
 local addon --#MrFish
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
@@ -85,15 +85,15 @@ if select(4,GetBuildInfo()) < 20000 then
   local sFindHerbs = GetSpellInfo(2383)
   local sFindMinerals = GetSpellInfo(2580)
 
-  mainprof1 = {sAlchemy, sBlacksmithing, sEnchanting, sEngineering, sJewelcrafting, sLeatherworking, sTailoring, sMining}
-  mainprof2 = {sHerbalism, sSkinning}
-  secprof = {sCooking, sFirstAid, sFishing, sPoisons}
+  local mainprof1 = {sAlchemy, sBlacksmithing, sEnchanting, sEngineering, sJewelcrafting, sLeatherworking, sTailoring, sMining}
+  local mainprof2 = {sHerbalism, sSkinning}
+  local secprof = {sCooking, sFirstAid, sFishing, sPoisons}
 
   local function GetProfessionsClassic()
     local prof1, prof2, poisons, fishing, cooking, firstAid
     for skillIndex = 1, GetNumSkillLines() do
-      skillName = select(1, GetSkillLineInfo(skillIndex))
-      isHeader = select(2, GetSkillLineInfo(skillIndex))
+      local skillName = select(1, GetSkillLineInfo(skillIndex))
+      local isHeader = select(2, GetSkillLineInfo(skillIndex))
       if isHeader == nil then
         for key,value in pairs(mainprof1) do
           if (prof1 == nil) and (value == skillName) then
@@ -114,8 +114,8 @@ if select(4,GetBuildInfo()) < 20000 then
       end
     end
     for skillIndex = 1, GetNumSkillLines() do
-      skillName = select(1, GetSkillLineInfo(skillIndex))
-      isHeader = select(2, GetSkillLineInfo(skillIndex))
+      local skillName = select(1, GetSkillLineInfo(skillIndex))
+      local isHeader = select(2, GetSkillLineInfo(skillIndex))
       if isHeader == nil then
         for key,value in pairs(mainprof2) do
           if (prof1 == nil) and (value == skillName) then
@@ -226,11 +226,11 @@ function addon:ZONE_CHANGED_NEW_AREA()
 end
 
 function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
-  --[===[@debug@
+  --@debug@
 
   print(event,slot,hasItem)
 
---@end-debug@]===]
+--@end-debug@
   if (slot==INVSLOT_MAINHAND or slot==INVSLOT_OFFHAND) then
     local ID=GetInventoryItemID("player",slot)
     if (ID) then
@@ -308,11 +308,11 @@ local function pushWeapon(tb,link,...)
 end
 
 function addon:StoreWeapons()
-  --[===[@debug@
+  --@debug@
 
   print("Storing weapons")
 
-  --@end-debug@]===]
+  --@end-debug@
   weapons[INVSLOT_MAINHAND]={}
   weapons[INVSLOT_OFFHAND]={}
   local link_mh=GetInventoryItemLink("player",INVSLOT_MAINHAND)
@@ -337,18 +337,18 @@ function addon:Discovery()
   FishingPolesCategory=select(7,GetItemInfo(FishingPoleId))
   Fishing,_,FishingIcon=GetSpellInfo(FishingId)
   if (not FishingPolesCategory or not Fishing) then
-    --[===[@debug@
+    --@debug@
 
     print("Rescheduled")
 
---@end-debug@]===]
+--@end-debug@
     self:ScheduleTimer("Discovery",0.5)
   else
-    --[===[@debug@
+    --@debug@
 
     print("Init")
 
---@end-debug@]===]
+--@end-debug@
     self:ScheduleLeaveCombatAction('Init')
   end
 end
@@ -431,10 +431,10 @@ function addon:StartFishFrame(atCursor)
   end
   start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
 
-  if ElvUI then
+  if _G.ElvUI then
     MrFishBaitFrame:StripTextures()
     MrFishBaitFrame:SetTemplate("Default")
-    ElvUI[1]:GetModule("Skins"):HandleButton(MrFishStopButton)
+    _G.ElvUI[1]:GetModule("Skins"):HandleButton(MrFishStopButton)
   end
 end
 function addon:StopFishFrame(show)
@@ -457,11 +457,11 @@ function addon:StopFishFrame(show)
 end
 
 function addon:OnEnter(this)
---[===[@debug@
+--@debug@
 
   print(this)
 
---@end-debug@]===]
+--@end-debug@
 end
 
 function addon:OnLeave(this)
@@ -477,11 +477,11 @@ end
 local waitingframes={}
 function addon:GET_ITEM_INFO_RECEIVED(event,itemID)
   local f=waitingframes[itemID]
-  --[===[@debug@
+  --@debug@
 
   print(event,itemID,f)
 
-  --@end-debug@]===]
+  --@end-debug@
   if f then
     waitingframes[itemID]=nil
     self:SetIcon(f)
@@ -490,11 +490,11 @@ function addon:GET_ITEM_INFO_RECEIVED(event,itemID)
     if v then return end
   end
   wipe(waitingframes)
-  --[===[@debug@
+  --@debug@
 
   print("Removed GET ITEM hook")
 
-  --@end-debug@]===]
+  --@end-debug@
   self:UnregisterEvent("GET_ITEM_INFO_RECEIVED")
 end
 
@@ -503,11 +503,11 @@ function addon:SetIcon(frame)
   if itemTexture then
     frame.Icon:SetTexture(itemTexture);
   else
-  --[===[@debug@
+  --@debug@
 
     print("Unable to retrieve info for ",frame.itemID)
 
-    --@end-debug@]===]
+    --@end-debug@
   end
 end
 
@@ -576,7 +576,8 @@ function addon:SetupFrames()
   start:SetAttribute("shift-type1","macro")
   start:SetAttribute("shift-macrotext1","/stopcasting")
   start.waitAndAnimOut:SetScript("OnFinished",function(this,requested) addon:OnAnimationStop(this,requested) end)
-  start:SetScript("PostClick",function(this)
+  start:SetScript("PostClick",function(...)
+    print("Ho cliccato",...)
     --fade(2)
     end )
   stop:SetText(BINDING_NAME_STOPCASTING .. ": " .. Fishing )
@@ -693,11 +694,11 @@ local hooksList={
   MoveForwardStop='StopMoving'
 }
 function addon:Hooks(on)
-  --[===[@debug@
+  --@debug@
 
   print(on and "Hooking" or "Unhooking")
 
---@end-debug@]===]
+--@end-debug@
   for hook,method in pairs(hooksList) do
     if on then
       if not self:IsHooked(hook) then
@@ -712,19 +713,19 @@ end
 local movestarted=0
 function addon:StartMoving()
   movestarted=GetTime()
-  --[===[@debug@
+  --@debug@
 
   print("Mi muovo alle",movestarted)
 
-  --@end-debug@]===]
+  --@end-debug@
   fade(3)
 end
 function addon:StopMoving()
-  --[===[@debug@
+  --@debug@
 
   print("Mi fermo alle",movestarted)
 
-  --@end-debug@]===]
+  --@end-debug@
   if GetTime()-movestarted <3 then
     unfade()
   end
