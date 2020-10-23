@@ -15,6 +15,10 @@ Starts fishing
 Stops fishing
 
 ]])
+self:RelNotes(2,5,1,[[
+Fix: Updated NSADropdown library
+]])
+
 self:RelNotes(2,4,6,[[
 Fix: Update for Shadowlands 9.x
 Feature: Option for "Fade" the Mr. Fish Button or simply disappear
