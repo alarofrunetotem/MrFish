@@ -6,7 +6,7 @@ externals:
       url: https://github.com/alarofrunetotem/LibInit.git/LibInit
       tag: latest
 
-      libs/LibDBIcon-1.0:
+   libs/LibDBIcon-1.0:
       url: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
 
 ignore:
