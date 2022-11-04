@@ -60,8 +60,9 @@
 		<Scripts>
 			<OnLoad>
 				self.Icon:SetPoint("LEFT",0,0)
-				self:RegisterForDrag("LeftButton")
-				self:RegisterForClicks("AnyUp")
+				self:RegisterForDrag("LeftButton", "MiddleButton")
+				<!-- self:RegisterForClicks("AnyUp") -->
+				self:RegisterForClicks("LeftButtonDown", "LeftButtonUp", "RightButtonUp", "RightButtonDown")
 				self:SetWidth(43)
 				self:SetHeight(55)
 				self.waitAndAnimOut:Stop();
@@ -86,7 +87,7 @@
 			<OnHide>MrFish:Hooks(false)</OnHide>
 		</Scripts>
 	</Button>
-	<Frame name="MrFishBaitFrame" enableMouse="true" movable="true" clampedToScreen="true" parent="UIParent" inherits="BackdropTemplate" hidden="true">
+	<Frame name="MrFishBaitFrame" enableMouse="true" movable="true" clampedToScreen="true" inherits="BackdropTemplate" parent="UIParent" hidden="true">
 		<Anchors>
 			<Anchor point="CENTER" x="-400" y="0"/>
 		</Anchors>
@@ -108,7 +109,7 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<Button parentArray="baits" inherits="MrFishBaitButton" visible="true">
+			<Button parentArray="baits" inherits="MrFishBaitButton">
 				<Anchors>
 					<Anchor point="BOTTOMLEFT" x="5" y="0" />
 				</Anchors>
@@ -128,7 +129,7 @@
 	</Frame>
 	<Button name="MrFishStopButton" movable="true" enableMouse="true" parent="UIParent" clampedToScreen="true" inherits="UIPanelButtonTemplate,SecureActionButtonTemplate" hidden="true">
 		<Anchors>
-			<Anchor point="BOTTOM" relativeTo="CastingBarFrame" relativePoint="TOP" x="0" y="10"/>
+			<Anchor point="BOTTOM" relativeTo="UIParent" relativePoint="BOTTOM" x="0" y="100"/>
 		</Anchors>
 		<Scripts>
 			<OnLoad>

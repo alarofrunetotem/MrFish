@@ -529,7 +529,7 @@ function addon:FillBait()
       bait.Icon:SetSize(40,40)
       bait.itemID=itemID
       bait.Quantity:SetFormattedText("%d",GetItemCount(itemID))
-      bait.Quantity:SetTextColor(C.Yellow())
+      bait.Quantity:SetTextColor(1, 1, 0.82352941176471, 0)
       bait.Quantity:Show()
       bait:EnableMouse(true)
       bait:RegisterForClicks("LeftButtonDown","RightButtonDown")
@@ -569,12 +569,14 @@ function addon:SetupFrames()
   start.Icon:SetTexture("Interface\\Icons\\Trade_Fishing")
   start.Label:SetText(Fishing)
   start.Amount:SetFormattedText("%d/%d",fishingSkill,fishingCap)
-  start:SetAttribute("type1","macro")
+  start:SetAttribute("type","macro")
   start:SetAttribute("macrotext","/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
   start:SetAttribute("type2","macro")
   start:SetAttribute("macrotext2","/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
   start:SetAttribute("shift-type1","macro")
   start:SetAttribute("shift-macrotext1","/stopcasting")
+	start:SetAttribute("ctrl-type1","macro")
+	start:SetAttribute("ctrl-macrotext1","")
   start.waitAndAnimOut:SetScript("OnFinished",function(this,requested) addon:OnAnimationStop(this,requested) end)
   start:SetScript("PostClick",function(this)
     --fade(2)
@@ -641,7 +643,10 @@ end
 
 function ldb:OnClick(button)
   if button=="RightButton" then
-    addon:Gui()
+    --addon:Gui()
+		if Settings then
+			Settings.OpenToCategory("MrFish")
+		end
     return
   else
     if IsFishing then addon:NoFish() else addon:Fish(false) end
