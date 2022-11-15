@@ -2,8 +2,14 @@ package-as: MrFish
 enable-nolib-creation: no
 
 externals:
-  Libs: https://repos.wowace.com/wow/libdbicon-1-0/trunk
-  Libs: https://github.com/alarofrunetotem/LibInit.git/LibInit/
+  Libs:
+    url: https://repos.wowace.com/wow/libdbicon-1-0/trunk
+    tag: latest
+  
+  Libs:
+    url: https://github.com/alarofrunetotem/LibInit.git
+    tag: latest
+    subdir: LibInit
   
 ignore:
   - .github
