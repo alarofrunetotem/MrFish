@@ -7,9 +7,8 @@ externals:
     tag: latest
   
   Libs:
-    url: https://github.com/alarofrunetotem/LibInit.git
+    url: https://github.com/alarofrunetotem/LibInit/LibInit
     tag: latest
-    subdir: LibInit
   
 ignore:
   - .github
