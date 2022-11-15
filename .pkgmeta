@@ -11,7 +11,7 @@ externals:
     tag: latest  
     
   Libs\Test:
-    url: https://github.com/alarofrunetotem/LibInit/tree/master/LibInit
+    url: https://github.com/alarofrunetotem/LibInit/trunk/LibInit
     tag: latest
   
 ignore:
