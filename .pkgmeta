@@ -8,10 +8,6 @@ externals:
   
   Libs:
     url: https://github.com/alarofrunetotem/LibInit.git
-    tag: latest  
-    
-  Libs\Test:
-    url: https://github.com/alarofrunetotem/LibInit/trunk/LibInit
     tag: latest
   
 ignore:
