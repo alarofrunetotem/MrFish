@@ -21,6 +21,7 @@ else
   addon=LibStub("LibInit"):NewAddon(me,"AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceBucket-3.0")
 end
 
+local GetContainerItemID = GetContainerItemID or (C_Container and C_Container.GetContainerItemID) -- Dragonflight fix
 local COMBATLOG_OBJECT_AFFILIATION_MINE   = COMBATLOG_OBJECT_AFFILIATION_MINE
 local pairs=pairs
 local wipe=wipe
