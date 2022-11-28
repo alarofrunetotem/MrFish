@@ -108,7 +108,7 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<Button parentArray="baits" inherits="MrFishBaitButton" visible="true">
+			<Button parentArray="baits" inherits="MrFishBaitButton">
 				<Anchors>
 					<Anchor point="BOTTOMLEFT" x="5" y="0" />
 				</Anchors>
@@ -128,7 +128,7 @@
 	</Frame>
 	<Button name="MrFishStopButton" movable="true" enableMouse="true" parent="UIParent" clampedToScreen="true" inherits="UIPanelButtonTemplate,SecureActionButtonTemplate" hidden="true">
 		<Anchors>
-			<Anchor point="BOTTOM" relativeTo="CastingBarFrame" relativePoint="TOP" x="0" y="10"/>
+			<Anchor point="BOTTOM" relativeTo="PlayerCastingBarFrame" relativePoint="TOP" x="0" y="10"/>
 		</Anchors>
 		<Scripts>
 			<OnLoad>

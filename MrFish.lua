@@ -269,8 +269,8 @@ function addon:GetFishingPole(printinfo)
   local maxname
 	local maxlink
   for bag=BACKPACK_CONTAINER,NUM_BAG_SLOTS,1 do
-    for slot=1,GetContainerNumSlots(bag),1 do
-      local ID=GetContainerItemID(bag,slot)
+    for slot=1,C_Container.GetContainerNumSlots(bag),1 do
+      local ID=C_Container.GetContainerItemID(bag,slot)
       if (ID) then
         local name,itemlink,_,level,_,_,cat=GetItemInfo(ID)
         if (cat==FishingPolesCategory) then
@@ -534,9 +534,10 @@ function addon:FillBait()
       bait:EnableMouse(true)
       bait:RegisterForClicks("LeftButtonDown","RightButtonDown")
       bait:SetAttribute("type1","macro")
-      bait:SetAttribute("macrotext","/use item:"..itemID.."\n/use 16")
+      bait:SetAttribute("macrotext1","/use item:"..itemID.."\n/use 16")
       bait:SetAttribute("type2","macro")
       bait:SetAttribute("macrotext2","/use item:"..itemID.."\n/use 16")
+      bait:SetAttribute("macrotext2","/run print ('use item:"..itemID.."\n/use 16')")
       bait:SetScript("PostClick",function() self:ScheduleTimer("FillBait",5) end)
       self:SetIcon(bait)
       bait:Show()
@@ -570,12 +571,13 @@ function addon:SetupFrames()
   start.Label:SetText(Fishing)
   start.Amount:SetFormattedText("%d/%d",fishingSkill,fishingCap)
   start:SetAttribute("type1","macro")
-  start:SetAttribute("macrotext","/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
+  start:SetAttribute("macrotext1","/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
   start:SetAttribute("type2","macro")
   start:SetAttribute("macrotext2","/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
   start:SetAttribute("shift-type1","macro")
   start:SetAttribute("shift-macrotext1","/stopcasting")
   start.waitAndAnimOut:SetScript("OnFinished",function(this,requested) addon:OnAnimationStop(this,requested) end)
+  start:RegisterForClicks("AnyUp","AnyDown")
   start:SetScript("PostClick",function(...)
     print("Ho cliccato",...)
     --fade(2)
