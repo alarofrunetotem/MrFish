@@ -10,11 +10,13 @@ It even changes back to weapons if you enter combat
 
 /fish
 Starts fishing
-
 /nofish
-Stops fishing
 
+ .]])
+self:RelNotes(2,11,2,[[
+Toc: 10.2.6
 ]])
+
 self:RelNotes(2,5,1,[[
 Fix: Updated NSADropdown library
 ]])

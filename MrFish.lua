@@ -14,7 +14,7 @@ local DevTools_Dump=function() end
 local addon --#MrFish
 local LibInit,minor=LibStub("LibInit",true)
 assert(LibInit,me .. ": Missing LibInit, please reinstall")
-
+---@class addon
 if minor >=21 then
   addon=LibStub("LibInit"):NewAddon(ns,me,{noswitch=true,profile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")
 else
