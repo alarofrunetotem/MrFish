@@ -13,6 +13,9 @@ Starts fishing
 /nofish
 
  .]])
+ self:RelNotes(2,12,0,[[
+Feature: preliminary support for classic and wrath
+ ]])
 self:RelNotes(2,11,2,[[
 Toc: 10.2.6
 ]])
