@@ -11,9 +11,11 @@ It even changes back to weapons if you enter combat
 /fish
 Starts fishing
 /nofish
-
- .]])
- self:RelNotes(2,12,0,[[
+]])
+self:RelNotes(2,13,0,[[
+  Toc: 10.2.7
+]])
+self:RelNotes(2,12,0,[[
 Feature: preliminary support for classic and wrath
  ]])
 self:RelNotes(2,11,2,[[

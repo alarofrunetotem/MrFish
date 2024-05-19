@@ -1,6 +1,6 @@
-## Interface: 100206
+## Interface: 100207
 ## Interface-Classic: 11502
-## Interface-Wrath: 30403
+## Interface-Cata: 40400
 ## Title: MrFish
 ## Notes: Quick line cast and equipment switch
 ## Author: Alar of Daggerspine
@@ -10,6 +10,7 @@
 ## eMail: alar@aspide.it
 ## RequiredDeps: LibInit
 ## OptionalDeps:
+## IconTexture: 6256
 ## X-Embeds:
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
