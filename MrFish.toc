@@ -1,6 +1,8 @@
-## Interface: 100207
+## Interface: 110000, 110002
 ## Interface-Classic: 11502
 ## Interface-Cata: 40400
+## IconTexture: Interface\Icons\inv_fishingpole_02
+## git@github.com:alarofrunetotem/MrFish.git
 ## Title: MrFish
 ## Notes: Quick line cast and equipment switch
 ## Author: Alar of Daggerspine
@@ -8,9 +10,8 @@
 ## X-Version: 1.1.2
 ## X-Revision: @project-abbreviated-hash@
 ## eMail: alar@aspide.it
-## RequiredDeps: LibInit
-## OptionalDeps:
-## IconTexture: 6256
+## RequiredDeps: 
+## OptionalDeps: LibInit
 ## X-Embeds:
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
