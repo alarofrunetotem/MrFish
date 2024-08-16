@@ -12,9 +12,13 @@ It even changes back to weapons if you enter combat
 Starts fishing
 /nofish
 ]])
+self:RelNotes(2,14,1,[[
+  Library Update
+]])
 self:RelNotes(2,14,0,[[
   Toc: 11.0.0, 11.0.2
-]])self:RelNotes(2,13,0,[[
+]])
+self:RelNotes(2,13,0,[[
   Toc: 10.2.7
 ]])
 self:RelNotes(2,12,0,[[
