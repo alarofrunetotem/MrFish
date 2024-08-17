@@ -12,6 +12,9 @@ It even changes back to weapons if you enter combat
 Starts fishing
 /nofish
 ]])
+self:RelNotes(2,14,2,[[
+  Fix: was not loading
+]])
 self:RelNotes(2,14,1,[[
   Library Update
 ]])

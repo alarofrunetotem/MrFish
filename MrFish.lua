@@ -2,8 +2,8 @@ local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line
 local me,ns=...
 --@debug@
 
-LoadAddOn("Blizzard_DebugTools")
-LoadAddOn("LibDebug")
+C_AddOns.LoadAddOn("Blizzard_DebugTools")
+C_AddOns.LoadAddOn("LibDebug")
 if LibDebug then LibDebug() end
 
 --@end-debug@
@@ -55,7 +55,7 @@ local GetProfessions = _G.GetProfessions
 local UnitChannelInfo = _G.UnitChannelInfo
 local ChannelFishing = false
 local ClassicFishingIDs = {7620, 7731, 7732, 18248}
-
+local GetSpellInfo=C_Spell.GetSpellInfo
 -- if Wow Client is Classic
 if select(4,GetBuildInfo()) < 20000 then
   FishingId = 7732
@@ -335,7 +335,8 @@ end
 function addon:Discovery()
   local _
   FishingPolesCategory=select(7,GetItemInfo(FishingPoleId))
-  Fishing,_,FishingIcon=GetSpellInfo(FishingId)
+  local a=GetSpellInfo(FishingId)
+  Fishing=a.name
   if (not FishingPolesCategory or not Fishing) then
     --@debug@
 
@@ -568,6 +569,7 @@ end
 function addon:SetupFrames()
   self:RegisterEvent("GET_ITEM_INFO_RECEIVED")
   start.Icon:SetTexture("Interface\\Icons\\Trade_Fishing")
+  self:Print('fishing',Fishing)
   start.Label:SetText(Fishing)
   start.Amount:SetFormattedText("%d/%d",fishingSkill,fishingCap)
   start:SetAttribute("type1","macro")
@@ -600,9 +602,12 @@ function addon:EquipFishingPole()
   end
   if (not IsEquippedItemType(FishingPolesCategory)) then
     FishingPole=self:GetFishingPole(true)
-    if (not FishingPole and NoPoleWarn) then
-      UIErrorsFrame:AddMessage(format(L["Maybe you want to buy a %s"] , FishingPolesCategory), 1,0,0, 1.0, 40)
-      NoPoleWarn=false
+    if (not FishingPole) then
+      if (NoPoleWarn) then
+        UIErrorsFrame:AddMessage(format(L["Maybe you want to buy a %s"] , FishingPolesCategory), 1,0,0, 1.0, 40)
+        NoPoleWarn=false
+      end
+      return
     else
       self:StoreWeapons()
       EquipItemByName(FishingPole)
