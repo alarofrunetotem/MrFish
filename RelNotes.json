@@ -256,7 +256,8 @@
         }
     },
     "PARAGRAPHS": [
-        "Description"
+        "Description",
+        "Release Notes"
     ],
     "TITLE": {
         "addon": "Mr Fish",
