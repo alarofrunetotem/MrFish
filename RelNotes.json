@@ -1,5 +1,16 @@
 {
     "NOTES": {
+        "k021500": {
+            "major": "2",
+            "minor": "15",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "11.0.5"
+                }
+            ]
+        },
         "k021402": {
             "major": "2",
             "minor": "14",
