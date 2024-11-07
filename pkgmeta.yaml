@@ -12,3 +12,4 @@ externals:
 ignore:
    - .buildpath
    - .project
+   - RelNotes.json

@@ -59,6 +59,7 @@ local GetSpellInfo=C_Spell.GetSpellInfo
 -- if Wow Client is Classic
 if select(4,GetBuildInfo()) < 20000 then
   FishingId = 7732
+---@diagnostic disable-next-line: undefined-field
   UnitChannelInfo = _G.ChannelInfo
 
   -- Main Profession localisations
@@ -148,8 +149,10 @@ function addon:CHAT_MSG_SKILL(event,msg)
     if (fishingSkill and fishingSkillID) then
       local _
       if select(4,GetBuildInfo()) < 20000 then
+---@diagnostic disable-next-line: cast-local-type
         fishingCap, fishingBonus = select(6,GetSkillLineInfo(fishingSkillID))
       else
+---@diagnostic disable-next-line: cast-local-type
         fishingCap,_,_,_,fishingBonus=select(4,GetProfessionInfo(fishingSkillID))
       end
       start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
@@ -363,9 +366,8 @@ function addon:Init()
   if (CanFish) then
     if select(4,GetBuildInfo()) < 20000 then
       fishingName, _, _, fishingSkill, _, _, fishingCap = GetSkillLineInfo(fishing)
-      fishingTexture = GetSpellTexture(fishingName)
     else
-      fishingName,fishingTexture,fishingSkill,fishingCap=GetProfessionInfo(fishing)
+      fishingName,_,fishingSkill,fishingCap=GetProfessionInfo(fishing)
     end
 
     self:SetupFrames()
@@ -425,16 +427,20 @@ function addon:StartFishFrame(atCursor)
   if (fishingSkillID) then
     local _
     if select(4,GetBuildInfo()) < 20000 then
+---@diagnostic disable-next-line: cast-local-type
       fishingSkill,_,fishingBonus,fishingCap = select(4,GetSkillLineInfo(fishingSkillID))
     else
+---@diagnostic disable-next-line: cast-local-type
       fishingSkill,fishingCap,_,_,_,fishingBonus=select(3,GetProfessionInfo(fishingSkillID))
     end
   end
   start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
 
+---@diagnostic disable-next-line: undefined-field
   if _G.ElvUI then
     MrFishBaitFrame:StripTextures()
     MrFishBaitFrame:SetTemplate("Default")
+---@diagnostic disable-next-line: undefined-field
     _G.ElvUI[1]:GetModule("Skins"):HandleButton(MrFishStopButton)
   end
 end
@@ -640,9 +646,10 @@ local icon = LibStub("LibDBIcon-1.0",true)
 local KEY_BUTTON1=ns.LMB
 local KEY_BUTTON2=ns.RMB
 
-
+---@class ldb:LibDataBroker.DataObjectCommonFields
 -- ldb extension
 local oldIsFishing
+---@diagnostic disable-next-line: inject-field
 function ldb:Update()
   ldb.text=IsFishing and C(Fishing,"GREEN") or C(Fishing,"SILVER")
 end
@@ -657,9 +664,12 @@ function ldb:OnClick(button)
 
 end
 
-function ldb:OnTooltipShow(...)
+function ldb:OnTooltipShow()
+---@diagnostic disable-next-line: undefined-field
   self:AddLine("MrFish")
+---@diagnostic disable-next-line: undefined-field
   self:AddDoubleLine(KEY_BUTTON1,L['Fishing mode on/off'],nil,nil,nil,C:Green())
+---@diagnostic disable-next-line: undefined-field
   self:AddDoubleLine(KEY_BUTTON2,L['Open configuration'],nil,nil,nil,C:Green())
 
 end

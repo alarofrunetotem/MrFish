@@ -1,0 +1,273 @@
+{
+    "NOTES": {
+        "k021402": {
+            "major": "2",
+            "minor": "14",
+            "patch": "2",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "was not loading"
+                }
+            ]
+        },
+        "k021401": {
+            "major": "2",
+            "minor": "14",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Library Update"
+                }
+            ]
+        },
+        "k021400": {
+            "major": "2",
+            "minor": "14",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "11.0.0, 11.0.2"
+                }
+            ]
+        },
+        "k021300": {
+            "major": "2",
+            "minor": "13",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "10.2.7"
+                }
+            ]
+        },
+        "k021200": {
+            "major": "2",
+            "minor": "12",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "preliminary support for classic and wrath"
+                }
+            ]
+        },
+        "k021102": {
+            "major": "2",
+            "minor": "11",
+            "patch": "2",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "10.2.6"
+                }
+            ]
+        },
+        "k020501": {
+            "major": "2",
+            "minor": "5",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Updated NSADropdown library"
+                }
+            ]
+        },
+        "k020406": {
+            "major": "2",
+            "minor": "4",
+            "patch": "6",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Update for Shadowlands 9.x"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Option for \"Fade\" the Mr. Fish Button or simply disappear"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "Skinned some Frames for ElvUI"
+                },
+                {
+                    "tag": "Developer",
+                    "info": "Code Style formated with \"Eclipse LUA Formating\" feature"
+                }
+            ]
+        },
+        "k020405": {
+            "major": "2",
+            "minor": "4",
+            "patch": "5",
+            "description": [
+                {
+                    "tag": "Toc",
+                    "info": "8.3.0"
+                }
+            ]
+        },
+        "k020404": {
+            "major": "2",
+            "minor": "4",
+            "patch": "4",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Updated for 8.2"
+                }
+            ]
+        },
+        "k020403": {
+            "major": "2",
+            "minor": "4",
+            "patch": "3",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "now uses new itembutton instead of itembuttontemplate"
+                }
+            ]
+        },
+        "k020400": {
+            "major": "2",
+            "minor": "4",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Thanks to fuba"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Fixed Weapon Swap when entering Combat in Fishing"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Fixed wrong Weapon\/Offand Equiped after stop Fishing"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "MrFish will now be disabled when entering Combat"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "You need enable it manually after Combat again"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Changed to use ItemLink instead of ItemID to Store and Restore Weapons because of Enchants and Sockets"
+                },
+                {
+                    "tag": "Example",
+                    "info": "This will prevent to equip the Wrong Item with the same Name but different Itemlevel, Enchant or Socket(s)"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "Added a Delay of 0.5 Seconds before the Fishing Button appears"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "So the Bonus will now shown correctly after equip a Fishing Pole"
+                }
+            ]
+        },
+        "k020300": {
+            "major": "2",
+            "minor": "3",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "fisihing button is now less invasive"
+                }
+            ]
+        },
+        "k020202": {
+            "major": "2",
+            "minor": "2",
+            "patch": "2",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "Version number is now the expected one"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "lua error when starting"
+                },
+                {
+                    "tag": "Feature",
+                    "info": "you can reequip weapons and exit fishing mode just walking for more than 3 seconds"
+                }
+            ]
+        },
+        "k010201": {
+            "major": "1",
+            "minor": "2",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "attempt to be smarter.Tries to keep fish button visible while you add a lure or move to a better spot"
+                }
+            ]
+        },
+        "k010101": {
+            "major": "1",
+            "minor": "1",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "removed an old debug message"
+                }
+            ]
+        },
+        "k010001": {
+            "major": "1",
+            "minor": "0",
+            "patch": "1",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Feature; Portoguese localization"
+                },
+                {
+                    "tag": "Fix",
+                    "info": "fixes a possile crash"
+                }
+            ]
+        },
+        "k010000": {
+            "major": "1",
+            "minor": "0",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Feature",
+                    "info": "Initial release"
+                }
+            ]
+        }
+    },
+    "PARAGRAPHS": [
+        "Description"
+    ],
+    "TITLE": {
+        "addon": "Mr Fish",
+        "title": "RELNOTES"
+    },
+    "PRE": [
+        "Mr Fish manages your fishing needs giving you a quick line cast button and automagically switching eq.",
+        "It even changes back to weapons if you enter combat",
+        "",
+        "\/fish",
+        "Starts fishing",
+        "\/nofish"
+    ]
+}
