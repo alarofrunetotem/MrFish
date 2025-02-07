@@ -1,6 +1,6 @@
 {
     "NOTES": {
-        "k021501": {
+        "k021502": {
             "major": "2",
             "minor": "15",
             "patch": "1",
@@ -12,14 +12,6 @@
                 {
                     "tag": "Feature",
                     "info": "Updated for war within"
-                },
-                {
-                    "tag": "Feature",
-                    "info": "Version 2.15.0"
-                },
-                {
-                    "tag": "Interna\u00f2",
-                    "info": "minor changes"
                 }
             ]
         },

@@ -14,11 +14,9 @@ Starts fishing
 /nofish
 ]])
 self:HF_Paragraph('Release Notes')
-self:RelNotes(2,15,1,[[
+self:RelNotes(2,15,2,[[
 Toc: 11.0.7
 Feature: Updated for war within
-Feature: Version 2.15.0
-Internaò: minor changes
 ]])
 self:RelNotes(2,15,0,[[
 Toc: 11.0.5
