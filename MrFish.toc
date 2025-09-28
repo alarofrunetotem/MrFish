@@ -1,5 +1,5 @@
-## Interface: 110105, 110107
-## Interface-Classic: 11502
+## Interface: 110200, 110205
+## Interface-Classic: 50500
 ## Interface-Cata: 40402
 ## IconTexture: Interface\Icons\inv_fishingpole_02
 ## git@github.com:alarofrunetotem/MrFish.git
