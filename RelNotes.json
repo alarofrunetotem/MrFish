@@ -1,5 +1,16 @@
 {
     "NOTES": {
+        "k021600": {
+            "major": "2",
+            "minor": "16",
+            "patch": "0",
+            "description": [
+                {
+                    "tag": "Fix",
+                    "info": "work in progress"
+                }
+            ]
+        },
         "k021503": {
             "major": "2",
             "minor": "15",
@@ -23,14 +34,6 @@
                 {
                     "tag": "Feature",
                     "info": "Updated for war within"
-                },
-                {
-                    "tag": "Feature",
-                    "info": "Version 2.15.0"
-                },
-                {
-                    "tag": "Interna\u00f2",
-                    "info": "minor changes"
                 }
             ]
         },
