@@ -49,6 +49,7 @@ local weapons
 local warned
 local FadeButton = false
 local MaxPoleFound = false
+local _
 
 -- Changes for Classic Wow
 local GetProfessions = _G.GetProfessions
@@ -207,7 +208,7 @@ if select(4,GetBuildInfo()) < 20000 then
 
 end
 
-function addon:COMBAT_LOG_EVENT_UNFILTERED(...)
+function addon:COMBAT_LOG_EVENT(...)
   local timestamp,event,hidecaster,sguid,sname,sflags,sraidflags,dguid,dname,dflags,dRaidflags,spellid,spellname,stack,kind=CombatLogGetCurrentEventInfo()
   if (dflags and bit.band(COMBATLOG_OBJECT_AFFILIATION_MINE,dflags)==1) then
     if (start and not InCombatLockdown()) then
@@ -381,7 +382,6 @@ function addon:Init()
     self:RegisterEvent("PLAYER_REGEN_DISABLED")
     self:RegisterEvent("PLAYER_REGEN_ENABLED")
     self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
-    self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     self:RegisterEvent("CHAT_MSG_SKILL")
     self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
     self:UnregisterEvent("SKILL_LINES_CHANGED")
