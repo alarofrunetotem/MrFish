@@ -14,6 +14,9 @@ Starts fishing
 /nofish
 ]])
 self:HF_Paragraph('Release Notes')
+self:RelNotes(2,18,2,[[
+Toc: 12.0.5
+]])
 self:RelNotes(2,18,1,[[
 Toc: 12.0.1
 ]])
