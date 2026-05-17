@@ -1,5 +1,5 @@
-local __FILE__=tostring(debugstack(1,2,0):match("(.*):1:")) -- Always check line number in regexp and file
-local me,ns=...
+local __FILE__ = tostring(debugstack(1, 2, 0):match("(.*):1:")) -- Always check line number in regexp and file
+local me, ns = ...
 --@debug@
 
 C_AddOns.LoadAddOn("Blizzard_DebugTools")
@@ -12,55 +12,57 @@ local print=function() end
 local DevTools_Dump=function() end
 --@end-non-debug@]===]
 local addon --#MrFish
-local LibInit,minor=LibStub("LibInit",true)
-assert(LibInit,me .. ": Missing LibInit, please reinstall")
+local LibInit, minor = LibStub("LibInit", true)
+assert(LibInit, me .. ": Missing LibInit, please reinstall")
 ---@class addon
-if minor >=21 then
-  addon=LibStub("LibInit"):NewAddon(ns,me,{noswitch=true,profile=true},"AceHook-3.0","AceEvent-3.0","AceTimer-3.0")
+if minor >= 21 then
+  addon = LibStub("LibInit"):NewAddon(ns, me, { noswitch = true, profile = true }, "AceHook-3.0", "AceEvent-3.0",
+    "AceTimer-3.0")
 else
-  addon=LibStub("LibInit"):NewAddon(me,"AceHook-3.0","AceEvent-3.0","AceTimer-3.0","AceBucket-3.0")
+  addon = LibStub("LibInit"):NewAddon(me, "AceHook-3.0", "AceEvent-3.0", "AceTimer-3.0", "AceBucket-3.0")
 end
 
-local COMBATLOG_OBJECT_AFFILIATION_MINE   = COMBATLOG_OBJECT_AFFILIATION_MINE
-local pairs=pairs
-local wipe=wipe
-local C=addon:GetColorTable()
-local L=addon:GetLocale()
-local FishingId=131474
-local Fishing=''
-local FishingIcon=''
+local COMBATLOG_OBJECT_AFFILIATION_MINE = COMBATLOG_OBJECT_AFFILIATION_MINE
+local pairs                             = pairs
+local wipe                              = wipe
+local C                                 = addon:GetColorTable()
+local L                                 = addon:GetLocale()
+local FishingId                         = 131474
+local Fishing                           = ''
+local FishingIcon                       = ''
 local FishingPole
-local FishingPoleId=6256
+local FishingPoleId                     = 6256
 local FishingPolesCategory
-local pattern=format(ERR_SKILL_UP_SI,"Fishing","999"):gsub("999.","(%%d+)"):gsub("Fishing",".*")
+local pattern                           = format(ERR_SKILL_UP_SI, "Fishing", "999"):gsub("999.", "(%%d+)"):gsub(
+  "Fishing", ".*")
 local IsFishing
 local CanFish
-local NoPoleWarn=true
+local NoPoleWarn                        = true
 local start
 local stop
 local baits
-local fishingName="Fishing"
-local fishingTexture="Interface\\Icons\\Trade_Fishing"
+local fishingName                       = "Fishing"
+local fishingTexture                    = "Interface\\Icons\\Trade_Fishing"
 local fishingSkillID
-local fishingSkill=0
-local fishingCap=0
-local fishingBonus=0
+local fishingSkill                      = 0
+local fishingCap                        = 0
+local fishingBonus                      = 0
 local weapons
 local warned
-local FadeButton = false
-local MaxPoleFound = false
+local FadeButton                        = false
+local MaxPoleFound                      = false
 local _
 
 -- Changes for Classic Wow
-local GetProfessions = _G.GetProfessions
-local UnitChannelInfo = _G.UnitChannelInfo
-local ChannelFishing = false
-local ClassicFishingIDs = {7620, 7731, 7732, 18248}
-local GetSpellInfo=C_Spell.GetSpellInfo
+local GetProfessions                    = _G.GetProfessions
+local UnitChannelInfo                   = _G.UnitChannelInfo
+local ChannelFishing                    = false
+local ClassicFishingIDs                 = { 7620, 7731, 7732, 18248 }
+local GetSpellInfo                      = C_Spell.GetSpellInfo
 -- if Wow Client is Classic
-if select(4,GetBuildInfo()) < 20000 then
+if select(4, GetBuildInfo()) < 20000 then
   FishingId = 7732
----@diagnostic disable-next-line: undefined-field
+  ---@diagnostic disable-next-line: undefined-field
   UnitChannelInfo = _G.ChannelInfo
 
   -- Main Profession localisations
@@ -87,9 +89,10 @@ if select(4,GetBuildInfo()) < 20000 then
   local sFindHerbs = GetSpellInfo(2383)
   local sFindMinerals = GetSpellInfo(2580)
 
-  local mainprof1 = {sAlchemy, sBlacksmithing, sEnchanting, sEngineering, sJewelcrafting, sLeatherworking, sTailoring, sMining}
-  local mainprof2 = {sHerbalism, sSkinning}
-  local secprof = {sCooking, sFirstAid, sFishing, sPoisons}
+  local mainprof1 = { sAlchemy, sBlacksmithing, sEnchanting, sEngineering, sJewelcrafting, sLeatherworking, sTailoring,
+    sMining }
+  local mainprof2 = { sHerbalism, sSkinning }
+  local secprof = { sCooking, sFirstAid, sFishing, sPoisons }
 
   local function GetProfessionsClassic()
     local prof1, prof2, poisons, fishing, cooking, firstAid
@@ -97,7 +100,7 @@ if select(4,GetBuildInfo()) < 20000 then
       local skillName = select(1, GetSkillLineInfo(skillIndex))
       local isHeader = select(2, GetSkillLineInfo(skillIndex))
       if isHeader == nil then
-        for key,value in pairs(mainprof1) do
+        for key, value in pairs(mainprof1) do
           if (prof1 == nil) and (value == skillName) then
             prof1 = skillIndex
           elseif (prof1 ~= nil) and (value == skillName) then
@@ -119,7 +122,7 @@ if select(4,GetBuildInfo()) < 20000 then
       local skillName = select(1, GetSkillLineInfo(skillIndex))
       local isHeader = select(2, GetSkillLineInfo(skillIndex))
       if isHeader == nil then
-        for key,value in pairs(mainprof2) do
+        for key, value in pairs(mainprof2) do
           if (prof1 == nil) and (value == skillName) then
             prof1 = skillIndex
           elseif (prof1 ~= nil) and (value == skillName) then
@@ -143,20 +146,20 @@ local function unfade()
   start.waitAndAnimOut:Stop();
 end
 
-function addon:CHAT_MSG_SKILL(event,msg)
-  local skill=msg:match(pattern)
+function addon:CHAT_MSG_SKILL(event, msg)
+  local skill = msg:match(pattern)
   if skill then
-    fishingSkill=skill
+    fishingSkill = skill
     if (fishingSkill and fishingSkillID) then
       local _
-      if select(4,GetBuildInfo()) < 20000 then
----@diagnostic disable-next-line: cast-local-type
-        fishingCap, fishingBonus = select(6,GetSkillLineInfo(fishingSkillID))
+      if select(4, GetBuildInfo()) < 20000 then
+        ---@diagnostic disable-next-line: cast-local-type
+        fishingCap, fishingBonus = select(6, GetSkillLineInfo(fishingSkillID))
       else
----@diagnostic disable-next-line: cast-local-type
-        fishingCap,_,_,_,fishingBonus=select(4,GetProfessionInfo(fishingSkillID))
+        ---@diagnostic disable-next-line: cast-local-type
+        fishingCap, _, _, _, fishingBonus = select(4, GetProfessionInfo(fishingSkillID))
       end
-      start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
+      start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER, fishingSkill, fishingBonus, fishingCap)
     end
   end
 end
@@ -174,7 +177,7 @@ end
 function addon:FISH_ENDED()
   self:FillBait()
   if FadeButton then
-    self:ScheduleTimer("StartFishFrame",0.5,true)
+    self:ScheduleTimer("StartFishFrame", 0.5, true)
   else
     self:StartFishFrame(true)
     start:Show()
@@ -189,8 +192,7 @@ function addon:FISH_STARTED()
 end
 
 -- Event for check Fishing in Classic Wow, becasue in Classic Wow "Fishing" is NO Buff, but should also work on BfA!
-if select(4,GetBuildInfo()) < 20000 then
-
+if select(4, GetBuildInfo()) < 20000 then
   function addon:UNIT_SPELLCAST_CHANNEL_START(event, unitTarget, castGUID, spellID)
     if (ChannelFishing) then return end
     local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = ChannelInfo();
@@ -205,15 +207,15 @@ if select(4,GetBuildInfo()) < 20000 then
     ChannelFishing = false
     self:FISH_ENDED()
   end
-
 end
 
 function addon:COMBAT_LOG_EVENT(...)
-  local timestamp,event,hidecaster,sguid,sname,sflags,sraidflags,dguid,dname,dflags,dRaidflags,spellid,spellname,stack,kind=CombatLogGetCurrentEventInfo()
-  if (dflags and bit.band(COMBATLOG_OBJECT_AFFILIATION_MINE,dflags)==1) then
+  local timestamp, event, hidecaster, sguid, sname, sflags, sraidflags, dguid, dname, dflags, dRaidflags, spellid, spellname, stack, kind =
+      CombatLogGetCurrentEventInfo()
+  if (dflags and bit.band(COMBATLOG_OBJECT_AFFILIATION_MINE, dflags) == 1) then
     if (start and not InCombatLockdown()) then
-      if (type(spellname)=="string" and spellname:find(Fishing)) then
-        if (kind=="BUFF") then
+      if (type(spellname) == "string" and spellname:find(Fishing)) then
+        if (kind == "BUFF") then
           if (event == "SPELL_AURA_REMOVED") then
             self:FISH_ENDED()
           elseif (event == "SPELL_AURA_APPLIED") then
@@ -229,17 +231,17 @@ function addon:ZONE_CHANGED_NEW_AREA()
   fade()
 end
 
-function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
+function addon:PLAYER_EQUIPMENT_CHANGED(event, slot, hasItem)
   --@debug@
 
-  print(event,slot,hasItem)
+  print(event, slot, hasItem)
 
---@end-debug@
-  if (slot==INVSLOT_MAINHAND or slot==INVSLOT_OFFHAND) then
-    local ID=GetInventoryItemID("player",slot)
+  --@end-debug@
+  if (slot == INVSLOT_MAINHAND or slot == INVSLOT_OFFHAND) then
+    local ID = GetInventoryItemID("player", slot)
     if (ID) then
-      if (select(7,GetItemInfo(ID))==FishingPolesCategory) then
-        FishingPole=GetItemInfo(ID)
+      if (select(7, GetItemInfo(ID)) == FishingPolesCategory) then
+        FishingPole = GetItemInfo(ID)
         if not IsFishing then self:Fish(IsFishing) end
       else
         self:StoreWeapons()
@@ -249,14 +251,14 @@ function addon:PLAYER_EQUIPMENT_CHANGED(event,slot,hasItem)
     end
   end
   if (not InCombatLockdown()) then
-    FishingPole=self:GetFishingPole(false)
+    FishingPole = self:GetFishingPole(false)
   end
 end
 
 function addon:HasEquippedFishingPole()
-  local ID=GetInventoryItemID("player",INVSLOT_MAINHAND)
+  local ID = GetInventoryItemID("player", INVSLOT_MAINHAND)
   if (ID) then
-    if (select(7,GetItemInfo(ID))==FishingPolesCategory) then
+    if (select(7, GetItemInfo(ID)) == FishingPolesCategory) then
       return ID
     else
       return false
@@ -268,43 +270,43 @@ end
 
 function addon:GetFishingPole(printinfo)
   -- Discover localized category name
-	local printmaxname = printinfo or false
-  local maxlevel=0
+  local printmaxname = printinfo or false
+  local maxlevel = 0
   local maxname
-	local maxlink
-  for bag=BACKPACK_CONTAINER,NUM_BAG_SLOTS,1 do
-    for slot=1,C_Container.GetContainerNumSlots(bag),1 do
-      local ID=C_Container.GetContainerItemID(bag,slot)
+  local maxlink
+  for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS, 1 do
+    for slot = 1, C_Container.GetContainerNumSlots(bag), 1 do
+      local ID = C_Container.GetContainerItemID(bag, slot)
       if (ID) then
-        local name,itemlink,_,level,_,_,cat=GetItemInfo(ID)
-        if (cat==FishingPolesCategory) then
-          if (level>maxlevel) then
-            maxname=name
-            maxlevel=level
-						maxlink=itemlink
+        local name, itemlink, _, level, _, _, cat = GetItemInfo(ID)
+        if (cat == FishingPolesCategory) then
+          if (level > maxlevel) then
+            maxname = name
+            maxlevel = level
+            maxlink = itemlink
           end
         end
       end
     end
   end
   if (maxname) and (printmaxname) then
-    self:Print(L["Use "]..maxlink)
+    self:Print(L["Use "] .. maxlink)
   end
   return maxname
 end
 
 function addon:Info(...)
-  for k,v in pairs(weapons) do
+  for k, v in pairs(weapons) do
     if (v) then
-      self:Print(k,"=",v.link)
+      self:Print(k, "=", v.link)
     end
   end
   if (FishingPole) then
-    self:Print(format(L["Fishing pole is %s"],GetItemInfo(FishingPole)))
+    self:Print(format(L["Fishing pole is %s"], GetItemInfo(FishingPole)))
   end
 end
 
-local function pushWeapon(tb,link,...)
+local function pushWeapon(tb, link, ...)
   if link then
     if (select(7, GetItemInfo(link)) == FishingPolesCategory) then return end
     tb.link = link
@@ -317,12 +319,12 @@ function addon:StoreWeapons()
   print("Storing weapons")
 
   --@end-debug@
-  weapons[INVSLOT_MAINHAND]={}
-  weapons[INVSLOT_OFFHAND]={}
-  local link_mh=GetInventoryItemLink("player",INVSLOT_MAINHAND)
-  if link_mh then pushWeapon(weapons[INVSLOT_MAINHAND],link_mh) end
-  local link_oh=GetInventoryItemLink("player",INVSLOT_OFFHAND)
-  if link_oh then pushWeapon(weapons[INVSLOT_OFFHAND],link_oh) end
+  weapons[INVSLOT_MAINHAND] = {}
+  weapons[INVSLOT_OFFHAND] = {}
+  local link_mh = GetInventoryItemLink("player", INVSLOT_MAINHAND)
+  if link_mh then pushWeapon(weapons[INVSLOT_MAINHAND], link_mh) end
+  local link_oh = GetInventoryItemLink("player", INVSLOT_OFFHAND)
+  if link_oh then pushWeapon(weapons[INVSLOT_OFFHAND], link_oh) end
 end
 
 function addon:RestoreWeapons()
@@ -338,22 +340,22 @@ end
 
 function addon:Discovery()
   local _
-  FishingPolesCategory=select(7,GetItemInfo(FishingPoleId))
-  local a=GetSpellInfo(FishingId)
-  Fishing=a.name
+  FishingPolesCategory = select(7, GetItemInfo(FishingPoleId))
+  local a = GetSpellInfo(FishingId)
+  Fishing = a.name
   if (not FishingPolesCategory or not Fishing) then
     --@debug@
 
     print("Rescheduled")
 
---@end-debug@
-    self:ScheduleTimer("Discovery",0.5)
+    --@end-debug@
+    self:ScheduleTimer("Discovery", 0.5)
   else
     --@debug@
 
     print("Init")
 
---@end-debug@
+    --@end-debug@
     self:ScheduleLeaveCombatAction('Init')
   end
 end
@@ -365,16 +367,16 @@ function addon:Init()
     CanFish = true
   end
   if (CanFish) then
-    if select(4,GetBuildInfo()) < 20000 then
+    if select(4, GetBuildInfo()) < 20000 then
       fishingName, _, _, fishingSkill, _, _, fishingCap = GetSkillLineInfo(fishing)
     else
-      fishingName,_,fishingSkill,fishingCap=GetProfessionInfo(fishing)
+      fishingName, _, fishingSkill, fishingCap = GetProfessionInfo(fishing)
     end
 
     self:SetupFrames()
 
     -- RegisterEvent for Classic
-    if select(4,GetBuildInfo()) < 20000 then
+    if select(4, GetBuildInfo()) < 20000 then
       self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
       self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
     end
@@ -385,35 +387,35 @@ function addon:Init()
     self:RegisterEvent("CHAT_MSG_SKILL")
     self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
     self:UnregisterEvent("SKILL_LINES_CHANGED")
-    FishingPole=self:GetFishingPole(false)
+    FishingPole = self:GetFishingPole(false)
   else
     if not warned then
       self:Print(L["You should learn to fish, if you installed me :)"])
-      warned=true
+      warned = true
     end
     self:NoFish()
   end
 end
 
 function addon:ShowAtMouse(frame)
-  local scale=UIParent:GetScale()
-  local x,y=GetCursorPosition()
+  local scale = UIParent:GetScale()
+  local x, y = GetCursorPosition()
   frame:ClearAllPoints()
-  frame:SetPoint("CENTER",UIParent,"BOTTOMLEFT",x/scale + 10/scale,y/scale)
+  frame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x / scale + 10 / scale, y / scale)
   frame:Show()
   fade(2)
 end
 
-function addon:ShowAtCenter(frame,offset)
-  offset=offset or 10
+function addon:ShowAtCenter(frame, offset)
+  offset = offset or 10
   frame:ClearAllPoints()
-  frame:SetPoint("CENTER",UIParent,"CENTER",offset,0)
+  frame:SetPoint("CENTER", UIParent, "CENTER", offset, 0)
   frame:Show()
   fade(10)
 end
 
 function addon:StartFishFrame(atCursor)
-  IsFishing=true
+  IsFishing = true
   if (atCursor) then
     self:ShowAtMouse(start)
   else
@@ -423,39 +425,40 @@ function addon:StartFishFrame(atCursor)
   self:FillBait()
   baits:Show()
   stop:Show()
-  fishingSkillID=select(4,GetProfessions())
+  fishingSkillID = select(4, GetProfessions())
   if (fishingSkillID) then
     local _
-    if select(4,GetBuildInfo()) < 20000 then
----@diagnostic disable-next-line: cast-local-type
-      fishingSkill,_,fishingBonus,fishingCap = select(4,GetSkillLineInfo(fishingSkillID))
+    if select(4, GetBuildInfo()) < 20000 then
+      ---@diagnostic disable-next-line: cast-local-type
+      fishingSkill, _, fishingBonus, fishingCap = select(4, GetSkillLineInfo(fishingSkillID))
     else
----@diagnostic disable-next-line: cast-local-type
-      fishingSkill,fishingCap,_,_,_,fishingBonus=select(3,GetProfessionInfo(fishingSkillID))
+      ---@diagnostic disable-next-line: cast-local-type
+      fishingSkill, fishingCap, _, _, _, fishingBonus = select(3, GetProfessionInfo(fishingSkillID))
     end
   end
-  start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER,fishingSkill,fishingBonus,fishingCap)
+  start.Amount:SetFormattedText(TRADESKILL_RANK_WITH_MODIFIER, fishingSkill, fishingBonus, fishingCap)
 
----@diagnostic disable-next-line: undefined-field
+  ---@diagnostic disable-next-line: undefined-field
   if _G.ElvUI then
     MrFishBaitFrame:StripTextures()
     MrFishBaitFrame:SetTemplate("Default")
----@diagnostic disable-next-line: undefined-field
+    ---@diagnostic disable-next-line: undefined-field
     _G.ElvUI[1]:GetModule("Skins"):HandleButton(MrFishStopButton)
   end
 end
+
 function addon:StopFishFrame(show)
-  local body,main,off='/stopcasting',weapons[INVSLOT_MAINHAND].link,weapons[INVSLOT_OFFHAND].link
+  local body, main, off = '/stopcasting', weapons[INVSLOT_MAINHAND].link, weapons[INVSLOT_OFFHAND].link
   if (main and off) then
-    body=format("/stopcasting\n/equipslot %d %s\n/equipslot %d %s",INVSLOT_MAINHAND,main,INVSLOT_OFFHAND,off)
+    body = format("/stopcasting\n/equipslot %d %s\n/equipslot %d %s", INVSLOT_MAINHAND, main, INVSLOT_OFFHAND, off)
   elseif (main or off) then
-    body=format("/stopcasting\n/equipslot %d %s",INVSLOT_MAINHAND,main or off)
+    body = format("/stopcasting\n/equipslot %d %s", INVSLOT_MAINHAND, main or off)
   else
-    body='/stopcasting'
+    body = '/stopcasting'
   end
-  local body='/stopcasting'
-  stop:SetAttribute("type","macro");
-  stop:SetAttribute("macrotext",body)
+  local body = '/stopcasting'
+  stop:SetAttribute("type", "macro");
+  stop:SetAttribute("macrotext", body)
   if (show) then
     stop:Show()
   else
@@ -464,11 +467,11 @@ function addon:StopFishFrame(show)
 end
 
 function addon:OnEnter(this)
---@debug@
+  --@debug@
 
   print(this)
 
---@end-debug@
+  --@end-debug@
 end
 
 function addon:OnLeave(this)
@@ -476,30 +479,32 @@ function addon:OnLeave(this)
     this.waitAndAnimOut:Play()
   end
 end
-function addon:OnAnimationStop(this,requested)
+
+function addon:OnAnimationStop(this, requested)
   if (not self:IsFishing()) then
     self:NoFish()
   end
 end
-local waitingframes={}
-function addon:GET_ITEM_INFO_RECEIVED(event,itemID)
-  local f=waitingframes[itemID]
+
+local waitingframes = {}
+function addon:GET_ITEM_INFO_RECEIVED(event, itemID)
+  local f = waitingframes[itemID]
   --@debug@
 
-  print(event,itemID,f)
+  self:Debug(event, itemID, f)
 
   --@end-debug@
   if f then
-    waitingframes[itemID]=nil
+    waitingframes[itemID] = nil
     self:SetIcon(f)
   end
-  for k,v in pairs(waitingframes) do
+  for k, v in pairs(waitingframes) do
     if v then return end
   end
   wipe(waitingframes)
   --@debug@
 
-  print("Removed GET ITEM hook")
+  self:Debug("Removed GET ITEM hook")
 
   --@end-debug@
   self:UnregisterEvent("GET_ITEM_INFO_RECEIVED")
@@ -510,108 +515,106 @@ function addon:SetIcon(frame)
   if itemTexture then
     frame.Icon:SetTexture(itemTexture);
   else
-  --@debug@
+    --@debug@
 
-    print("Unable to retrieve info for ",frame.itemID)
+    print("Unable to retrieve info for ", frame.itemID)
 
     --@end-debug@
   end
 end
 
 function addon:FillBait()
-  local baits=MrFishBaitFrame
-  local n=0
-  for i=1,#ns.baits do
-    local itemID=ns.baits[i]
-    local qt=GetItemCount(itemID)
+  local baits = MrFishBaitFrame
+  local n = 0
+  for i = 1, #ns.baits do
+    local itemID = ns.baits[i]
+    local qt = GetItemCount(itemID)
     if qt and qt > 0 then
-      n=n+1
-      local bait=baits.baits[n]
+      n = n + 1
+      local bait = baits.baits[n]
       if (not bait) then
-        bait=CreateFrame("Button",nil,baits,"MrFishBaitButton")
-        baits.baits[n]=bait
+        bait = CreateFrame("Button", nil, baits, "MrFishBaitButton")
+        baits.baits[n] = bait
       end
-      bait:SetPoint("BOTTOMLEFT",baits,40*n-37,3)
-      bait:SetSize(40,40)
-      bait.Icon:SetSize(40,40)
-      bait.itemID=itemID
-      bait.Quantity:SetFormattedText("%d",GetItemCount(itemID))
+      bait:SetPoint("BOTTOMLEFT", baits, 40 * n - 37, 3)
+      bait:SetSize(40, 40)
+      bait.Icon:SetSize(40, 40)
+      bait.itemID = itemID
+      bait.Quantity:SetFormattedText("%d", GetItemCount(itemID))
       bait.Quantity:SetTextColor(C.Yellow())
       bait.Quantity:Show()
       bait:EnableMouse(true)
-      bait:RegisterForClicks("LeftButtonDown","RightButtonDown")
-      bait:SetAttribute("type1","macro")
-      bait:SetAttribute("macrotext1","/use item:"..itemID.."\n/use 16")
-      bait:SetAttribute("type2","macro")
-      bait:SetAttribute("macrotext2","/use item:"..itemID.."\n/use 16")
-      bait:SetAttribute("macrotext2","/run print ('use item:"..itemID.."\n/use 16')")
-      bait:SetScript("PostClick",function() self:ScheduleTimer("FillBait",5) end)
+      bait:RegisterForClicks("LeftButtonDown", "RightButtonDown")
+      bait:SetAttribute("type1", "macro")
+      bait:SetAttribute("macrotext1", "/use item:" .. itemID .. "\n/use 16")
+      bait:SetAttribute("type2", "macro")
+      bait:SetAttribute("macrotext2", "/use item:" .. itemID .. "\n/use 16")
+      bait:SetAttribute("macrotext2", "/run print ('use item:" .. itemID .. "\n/use 16')")
+      bait:SetScript("PostClick", function() self:ScheduleTimer("FillBait", 5) end)
       self:SetIcon(bait)
       bait:Show()
     end
   end
-  if n==0 then
+  if n == 0 then
     baits:Hide()
     return
   end
-  for i=n+1,#baits.baits do
+  for i = n + 1, #baits.baits do
     baits.baits[i]:Hide()
   end
-  baits:SetWidth(40*n+6)
+  baits:SetWidth(40 * n + 6)
   baits:SetHeight(65)
   local backdrop = {
     --bgFile="Interface\\TutorialFrame\\TutorialFrameBackground",
-    bgFile="Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
-    edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",
-    tile=true,
-    tileSize=16,
-    edgeSize=16,
-    insets={bottom=2,left=2,right=2,top=2}
+    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    tile = true,
+    tileSize = 16,
+    edgeSize = 16,
+    insets = { bottom = 2, left = 2, right = 2, top = 2 }
   }
   baits:SetBackdrop(backdrop)
-
 end
 
 function addon:SetupFrames()
   self:RegisterEvent("GET_ITEM_INFO_RECEIVED")
   start.Icon:SetTexture("Interface\\Icons\\Trade_Fishing")
-  self:Print('fishing',Fishing)
+  self:Print('fishing', Fishing)
   start.Label:SetText(Fishing)
-  start.Amount:SetFormattedText("%d/%d",fishingSkill,fishingCap)
-  start:SetAttribute("type1","macro")
-  start:SetAttribute("macrotext1","/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
-  start:SetAttribute("type2","macro")
-  start:SetAttribute("macrotext2","/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
-  start:SetAttribute("shift-type1","macro")
-  start:SetAttribute("shift-macrotext1","/stopcasting")
-  start.waitAndAnimOut:SetScript("OnFinished",function(this,requested) addon:OnAnimationStop(this,requested) end)
-  start:RegisterForClicks("AnyUp","AnyDown")
-  start:SetScript("PostClick",function(...)
-    print("Ho cliccato",...)
+  start.Amount:SetFormattedText("%d/%d", fishingSkill, fishingCap)
+  start:SetAttribute("type1", "macro")
+  start:SetAttribute("macrotext1", "/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
+  start:SetAttribute("type2", "macro")
+  start:SetAttribute("macrotext2", "/stopcasting\n/equip " .. (FishingPole or '') .. "\n/cast " .. Fishing)
+  start:SetAttribute("shift-type1", "macro")
+  start:SetAttribute("shift-macrotext1", "/stopcasting")
+  start.waitAndAnimOut:SetScript("OnFinished", function(this, requested) addon:OnAnimationStop(this, requested) end)
+  start:RegisterForClicks("AnyUp", "AnyDown")
+  start:SetScript("PostClick", function(...)
+    print("Ho cliccato", ...)
     --fade(2)
-    end )
-  stop:SetText(BINDING_NAME_STOPCASTING .. ": " .. Fishing )
-  stop:SetWidth(stop:GetFontString():GetStringWidth()+20)
-  stop:SetScript("PostClick",function(this)
-    self:ScheduleTimer("NoFish",0.5)
+  end)
+  stop:SetText(BINDING_NAME_STOPCASTING .. ": " .. Fishing)
+  stop:SetWidth(stop:GetFontString():GetStringWidth() + 20)
+  stop:SetScript("PostClick", function(this)
+    self:ScheduleTimer("NoFish", 0.5)
   end
   )
   self:FillBait()
   self:StopFishFrame(false)
-
 end
 
 function addon:EquipFishingPole()
   if (InCombatLockdown()) then
-    UIErrorsFrame:AddMessage(L["Better stick to fighting"], 1,0,0, 1.0, 40)
+    UIErrorsFrame:AddMessage(L["Better stick to fighting"], 1, 0, 0, 1.0, 40)
     return
   end
   if (not IsEquippedItemType(FishingPolesCategory)) then
-    FishingPole=self:GetFishingPole(true)
+    FishingPole = self:GetFishingPole(true)
     if (not FishingPole) then
       if (NoPoleWarn) then
-        UIErrorsFrame:AddMessage(format(L["Maybe you want to buy a %s"] , FishingPolesCategory), 1,0,0, 1.0, 40)
-        NoPoleWarn=false
+        UIErrorsFrame:AddMessage(format(L["Maybe you want to buy a %s"], FishingPolesCategory), 1, 0, 0, 1.0, 40)
+        NoPoleWarn = false
       end
       return
     else
@@ -620,106 +623,107 @@ function addon:EquipFishingPole()
     end
   end
 end
+
 function addon:IsFishing()
   return (GetSpellInfo(FishingId) == UnitChannelInfo("player"))
 end
 
 ------------------------------------
 -- Ldb stuff
-ns.LMB = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t" -- left mouse button
-ns.RMB = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t" -- right mouse button
+ns.LMB = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:228:283\124t"  -- left mouse button
+ns.RMB = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:10:65:330:385\124t"  -- right mouse button
 ns.NMB = "\124TInterface\\TutorialFrame\\UI-Tutorial-Frame:12:12:0:0:512:512:89:144:228:283\124t" -- no mouse button
-local fakeLdb={
+local fakeLdb = {
   type = "data source",
   label = me,
-  text=Fishing,
+  text = Fishing,
   category = "Profession",
-  icon="Interface\\Icons\\Trade_Fishing",
-  iconR=1,
-  iconG=1,
-  iconB=1,
+  icon = "Interface\\Icons\\Trade_Fishing",
+  iconR = 1,
+  iconG = 1,
+  iconB = 1,
 }
 
-local LDB=LibStub:GetLibrary("LibDataBroker-1.1",true)
-local ldb= LDB:NewDataObject(me,fakeLdb) --#ldb
-local icon = LibStub("LibDBIcon-1.0",true)
-local KEY_BUTTON1=ns.LMB
-local KEY_BUTTON2=ns.RMB
+local LDB = LibStub:GetLibrary("LibDataBroker-1.1", true)
+local ldb = LDB:NewDataObject(me, fakeLdb) --#ldb
+local icon = LibStub("LibDBIcon-1.0", true)
+local KEY_BUTTON1 = ns.LMB
+local KEY_BUTTON2 = ns.RMB
 
 ---@class ldb:LibDataBroker.DataObjectCommonFields
 -- ldb extension
 local oldIsFishing
 ---@diagnostic disable-next-line: inject-field
 function ldb:Update()
-  ldb.text=IsFishing and C(Fishing,"GREEN") or C(Fishing,"SILVER")
+  ldb.text = IsFishing and C(Fishing, "GREEN") or C(Fishing, "SILVER")
 end
 
 function ldb:OnClick(button)
-  if button=="RightButton" then
+  if button == "RightButton" then
     addon:Gui()
     return
   else
     if IsFishing then addon:NoFish() else addon:Fish(false) end
   end
-
 end
 
 function ldb:OnTooltipShow()
----@diagnostic disable-next-line: undefined-field
+  ---@diagnostic disable-next-line: undefined-field
   self:AddLine("MrFish")
----@diagnostic disable-next-line: undefined-field
-  self:AddDoubleLine(KEY_BUTTON1,L['Fishing mode on/off'],nil,nil,nil,C:Green())
----@diagnostic disable-next-line: undefined-field
-  self:AddDoubleLine(KEY_BUTTON2,L['Open configuration'],nil,nil,nil,C:Green())
-
+  ---@diagnostic disable-next-line: undefined-field
+  self:AddDoubleLine(KEY_BUTTON1, L['Fishing mode on/off'], nil, nil, nil, C:Green())
+  ---@diagnostic disable-next-line: undefined-field
+  self:AddDoubleLine(KEY_BUTTON2, L['Open configuration'], nil, nil, nil, C:Green())
 end
 
 function addon:SetDbDefaults(default)
-  default.char.weapons={
-    [INVSLOT_MAINHAND]={},
-    [INVSLOT_OFFHAND]={},
+  default.char.weapons = {
+    [INVSLOT_MAINHAND] = {},
+    [INVSLOT_OFFHAND] = {},
   }
 end
 
 function addon:OnInitialized()
   ldb:Update()
-  weapons=self.db.char.weapons
+  weapons = self.db.char.weapons
   self:RestoreWeapons()
-  start=MrFishButton
-  stop=MrFishStopButton
-  baits=MrFishBaitFrame
-  self:AddBoolean("MINIMAP",false,L["Hide minimap icon"],L["If you hide minimap icon, use /mac gui to access configuration and /mac requests to open requests panel"])
-  self:AddToggle("RESTORE",true,L["Restore weapons on logout"],L["Always attempts to restore weapon on logout"])
-  self:AddBoolean("FADE",false,L["Fade MrFish Button"],L["Fade MrFish Button or Hide it instantly when turned off"])
-  self:AddChatCmd("Fish","fish")
-  self:AddChatCmd("NoFish","nofish")
-  self:AddPrivateOpenCmd("info","Info")
+  start = MrFishButton
+  stop = MrFishStopButton
+  baits = MrFishBaitFrame
+  self:AddBoolean("MINIMAP", false, L["Hide minimap icon"],
+    L["If you hide minimap icon, use /mac gui to access configuration and /mac requests to open requests panel"])
+  self:AddToggle("RESTORE", true, L["Restore weapons on logout"], L["Always attempts to restore weapon on logout"])
+  self:AddBoolean("FADE", false, L["Fade MrFish Button"], L["Fade MrFish Button or Hide it instantly when turned off"])
+  self:AddChatCmd("Fish", "fish")
+  self:AddChatCmd("NoFish", "nofish")
+  self:AddPrivateOpenCmd("info", "Info")
   self:RegisterEvent("SKILL_LINES_CHANGED")
   self:Discovery()
   if icon then
-    icon:Register(me,ldb,self.db.profile.ldb)
+    icon:Register(me, ldb, self.db.profile.ldb)
   end
   return true
 end
+
 -- PLAYER_STARTED_MOVING
 -- PLAYER_STOPPED_MOVING
-local hooksList={
-  MoveBackwardStart='StartMoving',
-  MoveForwardStart='StartMoving',
-  JumpOrAscendStart='StartMoving',
-  MoveBackwardStop='StopMoving',
-  MoveForwardStop='StopMoving'
+local hooksList = {
+  MoveBackwardStart = 'StartMoving',
+  MoveForwardStart = 'StartMoving',
+  JumpOrAscendStart = 'StartMoving',
+  MoveBackwardStop = 'StopMoving',
+  MoveForwardStop = 'StopMoving'
 }
 function addon:Hooks(on)
   --@debug@
 
   print(on and "Hooking" or "Unhooking")
 
---@end-debug@
-  for hook,method in pairs(hooksList) do
+  --@end-debug@
+  for hook, method in pairs(hooksList) do
     if on then
       if not self:IsHooked(hook) then
-        self:SecureHook(hook,method)
+        self:SecureHook(hook, method)
       end
     else
       self:Unhook(hook)
@@ -727,23 +731,24 @@ function addon:Hooks(on)
   end
 end
 
-local movestarted=0
+local movestarted = 0
 function addon:StartMoving()
-  movestarted=GetTime()
+  movestarted = GetTime()
   --@debug@
 
-  print("Mi muovo alle",movestarted)
+  print("Mi muovo alle", movestarted)
 
   --@end-debug@
   fade(3)
 end
+
 function addon:StopMoving()
   --@debug@
 
-  print("Mi fermo alle",movestarted)
+  print("Mi fermo alle", movestarted)
 
   --@end-debug@
-  if GetTime()-movestarted <3 then
+  if GetTime() - movestarted < 3 then
     unfade()
   end
 end
@@ -754,12 +759,12 @@ function addon:ApplyMINIMAP(value)
   else
     icon:Show(me)
   end
-  self.db.profile.ldb={hide=value}
+  self.db.profile.ldb = { hide = value }
 end
 
 function addon:ApplyRESTORE(value)
   if (true) then
-    self:RegisterEvent("PLAYER_LOGOUT","RestoreWeapons")
+    self:RegisterEvent("PLAYER_LOGOUT", "RestoreWeapons")
   else
     self:UnregisterEvent("PLAYER_LOGOUT")
   end
@@ -770,11 +775,11 @@ function addon:ApplyFADE(value)
 end
 
 function addon:Fish(atCursor)
-  IsFishing=true
+  IsFishing = true
   if (not self:IsFishing()) then
     self:EquipFishingPole()
   end
-  self:ScheduleTimer("StartFishFrame",0.5,atCursor)
+  self:ScheduleTimer("StartFishFrame", 0.5, atCursor)
   ldb:Update()
 end
 
@@ -787,7 +792,8 @@ function addon:ActualNoFish()
   start:Hide()
   stop:Hide()
   baits:Hide()
-  IsFishing=false
+  IsFishing = false
   ldb:Update()
 end
-_G.MrFish=addon
+
+_G.MrFish = addon
